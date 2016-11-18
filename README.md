@@ -6,6 +6,7 @@ memcached java 高仿版
    1.1 UDP 协议.
    1.2 TCP 协议.
 2、网络模型<br>  
+![image](https://github.com/mycat-j/Mycat-jcache/edit/master/网络模型.jpg)
 
 3、内存管理模型<br>
 
