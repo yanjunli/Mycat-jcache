@@ -10,11 +10,13 @@ import io.mycat.mcache.Strategy.RoundRobinStrategy;
 
 /**
  * 
- *@author 
+ *@author liyanjun
  */
 public class McacheMain 
 {
-	
+	/**
+	 * 主线程 将新连接分派给 reactor 的策略
+	 */
 	private static Map<ReactorSelectEnum,ReactorStrategy> reactorStrategy = new HashMap<>();	
 	
     public static void main( String[] args ) throws IOException 
@@ -30,7 +32,5 @@ public class McacheMain
     	NIOReactorPool reactorPool = new NIOReactorPool(poolsize,reactorStrategy.get(ReactorSelectEnum.valueOf(reaStrategy)));
     	NIOAcceptor acceptor=new NIOAcceptor(bindIp,port, reactorPool,backlog);
 		acceptor.start();
-		
-		FileInputStream
     }
 }

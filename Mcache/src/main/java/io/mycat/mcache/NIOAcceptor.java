@@ -20,7 +20,7 @@ import io.mycat.mcache.conn.MemConnection;
  * @author liyajun
  */
 public final class NIOAcceptor extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(NIOAcceptor.class);
+	private static final Logger logger = LoggerFactory.getLogger(NIOAcceptor.class);
 	private final Selector selector;
 	private final ServerSocketChannel serverChannel;
 	private final NIOReactorPool reactorPool;
@@ -58,7 +58,7 @@ public final class NIOAcceptor extends Thread {
 					keys.clear();
 				}
 			} catch (Throwable e) {
-				LOGGER.warn(getName(), e);
+				logger.warn(getName(), e);
 			}
 		}
 	}
@@ -69,15 +69,19 @@ public final class NIOAcceptor extends Thread {
 	private void accept() {
 		SocketChannel channel = null;
 		try {
+			if(logger.isDebugEnabled()){
+				logger.debug("===accepted new client connection");
+			}
 			channel = serverChannel.accept();
 			channel.configureBlocking(false);
 			// 派发此连接到某个Reactor处理
 			NIOReactor reactor = reactorPool.getNextReactor();
 			Connection conn = new MemConnection(channel);
+			//TODO 需要更多的conn 属性需要设置
 			reactor.registerNewClient(conn);
 		} catch (Throwable e) {
 			closeChannel(channel);
-			LOGGER.warn(getName(), e);
+			logger.warn(getName(), e);
 		}
 	}
 
