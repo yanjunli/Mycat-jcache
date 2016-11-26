@@ -13,19 +13,23 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.mycat.mcache.conn.ConnectIdGenerator;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.MemConnection;
+import io.mycat.mcache.conn.handler.BinaryIOHandler;
+import io.mycat.mcache.conn.handler.IOHandler;
 
 /**
- * @author liyajun
+ * @author liyanjun
  */
-public final class NIOAcceptor extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(NIOAcceptor.class);
+public final class TCPNIOAcceptor extends Thread {
+	private static final Logger logger = LoggerFactory.getLogger(TCPNIOAcceptor.class);
 	private final Selector selector;
 	private final ServerSocketChannel serverChannel;
 	private final NIOReactorPool reactorPool;
+	
 
-	public NIOAcceptor(String bindIp,int port,NIOReactorPool reactorPool,int backlog)
+	public TCPNIOAcceptor(String bindIp,int port,NIOReactorPool reactorPool,int backlog)
 			throws IOException {
 		super.setName("nioacceptor");
 		this.selector = Selector.open();
@@ -47,18 +51,18 @@ public final class NIOAcceptor extends Thread {
 				selector.select(500L);
 				Set<SelectionKey> keys = selector.selectedKeys();
 				try {
-					for (SelectionKey key : keys) {
+					keys.forEach(key->{
 						if (key.isValid() && key.isAcceptable()) {
 							accept();
 						} else {
 							key.cancel();
 						}
-					}
+					});
 				} finally {
 					keys.clear();
 				}
 			} catch (Throwable e) {
-				LOGGER.warn(getName(), e);
+				logger.warn(getName(), e);
 			}
 		}
 	}
@@ -69,15 +73,20 @@ public final class NIOAcceptor extends Thread {
 	private void accept() {
 		SocketChannel channel = null;
 		try {
+			if(logger.isDebugEnabled()){
+				logger.debug("===accepted new client connection");
+			}
 			channel = serverChannel.accept();
 			channel.configureBlocking(false);
 			// 派发此连接到某个Reactor处理
 			NIOReactor reactor = reactorPool.getNextReactor();
 			Connection conn = new MemConnection(channel);
+			conn.setId(ConnectIdGenerator.getINSTNCE().getId());
+			//TODO 需要更多的conn 属性需要设置
 			reactor.registerNewClient(conn);
 		} catch (Throwable e) {
 			closeChannel(channel);
-			LOGGER.warn(getName(), e);
+			logger.warn(getName(), e);
 		}
 	}
 

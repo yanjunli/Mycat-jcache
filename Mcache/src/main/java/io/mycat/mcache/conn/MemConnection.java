@@ -1,6 +1,10 @@
 package io.mycat.mcache.conn;
 
+import java.io.IOException;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+
+import io.mycat.mcache.conn.handler.IOHandler;
 
 /**
  * mcache 连接处理器
@@ -9,7 +13,7 @@ import java.nio.channels.SocketChannel;
  */
 public class MemConnection extends Connection {
 
-	public MemConnection(SocketChannel channel) {
+	public MemConnection(SocketChannel channel)throws IOException  {
 		super(channel);
 	}
 
