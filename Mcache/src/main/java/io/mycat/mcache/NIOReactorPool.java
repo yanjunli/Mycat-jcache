@@ -3,6 +3,8 @@ package io.mycat.mcache;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.mycat.mcache.Strategy.ReactorStrategy;
 
@@ -18,18 +20,20 @@ public class NIOReactorPool {
 	private final String rectorname = "rector";
 	
 	private final ReactorStrategy startegy;
+	/**
+	 * 多个 reactor 共用一个线程池
+	 */
+	private final ExecutorService executor=Executors.newCachedThreadPool();
 	
 	private int lastreactor; //上一次处理连接的reactor
 	
 	public NIOReactorPool(int poolSize,ReactorStrategy startegy) throws IOException{
 		this.reactors = new NIOReactor[poolSize];
 		this.startegy = startegy;
-		Map<String,NIOReactor> reactorMap=new HashMap<String,NIOReactor>();
 		for (int i = 0; i < poolSize; i++) {
-			NIOReactor reactor = new NIOReactor(rectorname + "-" + i);
+			NIOReactor reactor = new NIOReactor(rectorname + "-" + i,executor);
 			reactors[i] = reactor;
 			reactor.start();
-			reactorMap.put(reactor.getName(), reactor);
 		}
 	}
 

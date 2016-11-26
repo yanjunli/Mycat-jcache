@@ -1,5 +1,7 @@
 package io.mycat.mcache;
 
+import io.mycat.mcache.model.Protocol;
+
 /**
  * Mcache 全局配置
  * @author 
@@ -31,5 +33,17 @@ public final class McacheGlobalConfig {
 	 * 
 	 */
 	public static final int defaultMaxAcceptNum = 10000;
+	
+	/**
+	 * 默认字符编码
+	 */
+	public static final String defaultCahrset = "UTF-8";
+	
+	/**
+	 * 绑定的协议 
+	 * -B 
+	 * - 可能值：ascii,binary,auto（默认）
+	 */
+	public static Protocol prot = Protocol.negotiating;
 
 }
