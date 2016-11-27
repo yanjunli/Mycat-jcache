@@ -8,6 +8,8 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.mycat.mcache.model.Protocol;
+
 /**
  * 配置加载器
  * @author lyj
@@ -49,6 +51,22 @@ public class ConfigLoader {
 	
 	public static String getProperty(String property){
 		return properties.getProperty(property);
+	}
+	
+	public static String getStringProperty(String key,String def){
+		String value = properties.getProperty(key);
+		if(value==null||"".equals(value)){
+			return def;
+		}
+		return value;
+	}
+	
+	public static int getIntProperty(String key,int def){
+		String value = properties.getProperty(key);
+		if(value==null||"".equals(value)){
+			return def;
+		}
+		return Integer.parseInt(value);
 	}
 	
 	public static void forEach(){
