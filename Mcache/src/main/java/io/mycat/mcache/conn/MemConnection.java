@@ -16,5 +16,7 @@ public class MemConnection extends Connection {
 	public MemConnection(SocketChannel channel)throws IOException  {
 		super(channel);
 	}
+	
+	
 
 }

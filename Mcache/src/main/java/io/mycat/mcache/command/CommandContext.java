@@ -3,8 +3,6 @@ package io.mycat.mcache.command;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.mycat.mcache.conn.handler.IOHandler;
-
 
 /**
  * 命令上下文
@@ -13,15 +11,27 @@ import io.mycat.mcache.conn.handler.IOHandler;
  */
 public class CommandContext {
 	
-	private Map<CommandType,Command> commandMap = new HashMap<>();
+	private static Map<CommandType,Command> commandMap = new HashMap<>();
 	
-	public CommandContext(IOHandler ioHandler){
-//		commandMap.put(CommandType.SEARCHINFILES, new SearchInFilesCommand(ioHandler));
-//		commandMap.put(CommandType.CLOSE, new CloseCommand(ioHandler));
+	static {
+		commandMap.put(CommandType.set, new SetCommand());
 	}
 	
-	public Map<CommandType,Command> getCommandMap(){
-		return commandMap;
+	private CommandContext(){}
+	
+	public static Command getCommand(Byte key){
+		CommandType type = CommandType.getType(key);
+		if(type==null){
+			return null;
+		}
+		return commandMap.get(type);
 	}
 	
+	public static Command getCommand(String key){
+		CommandType type = CommandType.valueOf(key);
+		if(type==null){
+			return null;
+		}
+		return commandMap.get(type);
+	}
 }
