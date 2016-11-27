@@ -48,7 +48,8 @@ public final class NIOReactor extends Thread{
 		int readys=0;
 		for (;;) {
 			try {
-				readys=selector.select(400/(readys+1));  //借鉴mycat-core
+//				400/(readys+1)
+				readys=selector.select();  //借鉴mycat-core
 				if(readys==0) // 没有需要处理的事件时，处理新连接请求  注册 read 事件
 				{
 					handlerEvents(selector);  

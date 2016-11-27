@@ -2,10 +2,12 @@ package io.mycat.mcache.conn;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +31,24 @@ public abstract class Connection implements Closeable,Runnable{
 	private ConDataBuffer writeBuffer;
 	protected ConDataBuffer readBuffer;
 	private long id;
-	private boolean isClosed;
-//	private volatile LinkedList<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
-//	private AtomicBoolean writingFlag = new AtomicBoolean(false);
-//	private final Charset charset = Charset.forName(McacheGlobalConfig.defaultCahrset);
-    
+	private boolean isClosed;    
     private IOHandler ioHandler;
+    /**
+     * 当前命令
+     */
+    private byte curOpcode;
+    
     
     public Connection(SocketChannel channel){
         this.channel = channel;
+    }
+    
+    public void setOpCode(byte curOpcode){
+    	this.curOpcode = curOpcode;
+    }
+    
+    public byte getOpCode(){
+    	return curOpcode;
     }
     
     public long getId(){
@@ -52,7 +63,7 @@ public abstract class Connection implements Closeable,Runnable{
 	public void close() throws IOException {
 		closeSocket();
 	}
-	
+		
 	public void register(Selector selector)  throws IOException {
 		selectionKey = channel.register(selector, SelectionKey.OP_READ);
         String maprFileName=id+".rtmp";
@@ -84,6 +95,34 @@ public abstract class Connection implements Closeable,Runnable{
 		}
 	}
 	
+//	public void writeData(byte[] data) throws IOException {
+//		while (!writingFlag.compareAndSet(false, true)) {
+//			// wait until release
+//		}
+//		try {
+//			ByteBuffer theWriteBuf = writeBuffer;
+//			if (theWriteBuf==null && writeQueue.isEmpty()) {
+//				writeToChannel(ByteBuffer.wrap(data));
+//			} else {
+//				writeQueue.add(ByteBuffer.wrap(data));
+//				writeToChannel(theWriteBuf);
+//			}
+//			
+//		} finally {
+//			// release
+//			writingFlag.lazySet(false);
+//
+//		}
+//
+//	}
+//	
+//    private boolean write0() throws IOException {
+//    	final ConDataBuffer buffer = this.writeBuffer;
+//    	final int written = buffer.transferTo(this.channel);
+//    	final int remains = buffer.writingPos() - buffer.readPos();
+//    	return (remains == 0);
+//    }
+	
 	@Override
 	public void run() {
 		try {
@@ -106,6 +145,7 @@ public abstract class Connection implements Closeable,Runnable{
 			} else {
 				logger.warn(this + " " + e);
 			}
+			close("program err:" + e.toString());
 		}
 	}
 	
@@ -140,9 +180,44 @@ public abstract class Connection implements Closeable,Runnable{
 	 * @throws IOException
 	 */
 	public void asynWrite() throws IOException{
-		//TODO 
-		ioHandler.doWriterHandler(this);
+		ioHandler.doWriterHandler(this);	
+		this.writeBuffer.transferTo(channel);
+		final int remains = writeBuffer.writingPos() - writeBuffer.readPos();
+		boolean noMoreData = remains==0;
+		if (noMoreData) {
+		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) != 0)) {
+		        disableWrite();
+		    }
+
+		} else {
+		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) == 0)) {
+		        enableWrite(false);
+		    }
+		}
 	}
+	
+    public void enableWrite(boolean wakeup) {
+        boolean needWakeup = false;
+        SelectionKey key = this.selectionKey;
+        try {
+            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+            needWakeup = true;
+        } catch (Exception e) {
+            logger.warn("can't enable write " + e);
+        }
+        if (needWakeup && wakeup) {
+        	key.selector().wakeup();
+        }
+    }
+	
+	private void disableWrite() {
+        try {
+            SelectionKey key = this.selectionKey;
+            key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+        } catch (Exception e) {
+            logger.warn("can't disable write " + e + " con " + this);
+        }
+    }
 	
     public void close(String reason) {
         if (!isClosed) {  
@@ -193,5 +268,9 @@ public abstract class Connection implements Closeable,Runnable{
 
 	public ConDataBuffer getReadDataBuffer() {
 		return this.readBuffer;
+	}
+	
+	public ConDataBuffer getWriteBuffer(){
+		return this.writeBuffer;
 	}
 }
