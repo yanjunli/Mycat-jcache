@@ -1,8 +1,6 @@
 package io.mycat.mcache;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +23,7 @@ public class NIOReactorPool {
 	 */
 	private final ExecutorService executor=Executors.newCachedThreadPool();
 	
-	private int lastreactor; //上一次处理连接的reactor
+	private volatile int lastreactor; // 上一次处理连接的reactor，使用volatile保证多线程操作时内存可见
 	
 	public NIOReactorPool(int poolSize,ReactorStrategy startegy) throws IOException{
 		this.reactors = new NIOReactor[poolSize];
