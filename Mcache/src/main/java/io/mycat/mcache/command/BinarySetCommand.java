@@ -12,16 +12,16 @@ import io.mycat.mcache.conn.handler.BinaryProtocol;
  * @author liyanjun
  *
  */
-public class SetCommand implements Command{
+public class BinarySetCommand implements Command{
 
 	@Override
-	public void execute(Connection conn,ConDataBuffer buffer,ByteBuffer key,ByteBuffer value) throws IOException {
+	public void execute(Connection conn,ByteBuffer key,ByteBuffer value) throws IOException {
 		
 
-		System.out.println("执行set 命令   key: ");
-		System.out.println("执行set 命令   value: ");
+		System.out.println("执行set 命令   key: "+new String(key.array(),"UTF-8"));
+		System.out.println("执行set 命令   value: "+new String(value.array(),"UTF-8"));
 		
-		ByteBuffer write = conn.getWriteBuffer().beginWrite(24);
+		ByteBuffer write = conn.getWriteBuffer();
 		write.put(BinaryProtocol.MAGIC_RESP);
 		write.put(BinaryProtocol.OPCODE_SET);
 		write.putShort((short)0x0000);
@@ -31,8 +31,8 @@ public class SetCommand implements Command{
 		write.putInt(0x00);
 		write.putInt(0);
 		write.putLong(1l);
-		conn.getWriteBuffer().endWrite(write);
+		write.flip();
+		System.out.println(1111);
 		conn.enableWrite(true);
 	}
-
 }

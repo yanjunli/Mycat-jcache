@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.mycat.mcache.model.Protocol;
+import sun.applet.Main;
 
 /**
  * 配置加载器
@@ -72,5 +73,7 @@ public class ConfigLoader {
 	public static void forEach(){
 		properties.forEach((k,v)->System.out.println("propertie key : " + k + " value : " + v));
 	}
+	
+
 	
 }

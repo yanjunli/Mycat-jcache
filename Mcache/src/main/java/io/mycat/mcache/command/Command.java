@@ -16,5 +16,5 @@ public interface Command {
 	/**
 	 * 执行命令
 	 */
-	void execute(Connection conn,ConDataBuffer buffer,ByteBuffer key,ByteBuffer value) throws IOException;
+	void execute(Connection conn,ByteBuffer key,ByteBuffer value) throws IOException;
 }

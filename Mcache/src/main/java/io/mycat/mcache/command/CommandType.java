@@ -1,5 +1,6 @@
 package io.mycat.mcache.command;
 
+import io.mycat.mcache.conn.handler.BinaryProtocol;
 
 /**
  * 命令类型
@@ -8,10 +9,10 @@ package io.mycat.mcache.command;
  */
 public enum CommandType {
 	
-	get((byte)0),
-	set((byte)1),
-	add((byte)2),
-	replace((byte)3),
+	get(BinaryProtocol.OPCODE_GET),
+	set(BinaryProtocol.OPCODE_SET),
+	add(BinaryProtocol.OPCODE_ADD),
+	replace(BinaryProtocol.OPCODE_REPLACE),
 	delete((byte)4),
 	increment((byte)5),
 	decrement((byte)6),
