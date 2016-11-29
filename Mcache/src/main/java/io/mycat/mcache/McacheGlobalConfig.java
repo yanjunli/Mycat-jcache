@@ -45,6 +45,12 @@ public final class McacheGlobalConfig {
 	 * - 可能值：ascii,binary,auto（默认）
 	 */
 	public static Protocol prot = Protocol.negotiating;
+
+	/** Maximum length of a key. */
+	public static final int KEY_MAX_LENGTH = 255;
+
+	/** Maximum length of a value */
+	public static final long VALUE_MAX_LENGTH=1024*1024;
 	
 	public static void main(String[] args) {
 		System.out.println(-127&0xff);
