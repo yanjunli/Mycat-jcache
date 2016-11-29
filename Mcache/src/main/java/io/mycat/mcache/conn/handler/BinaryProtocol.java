@@ -7,6 +7,9 @@ package io.mycat.mcache.conn.handler;
  *
  */
 public final class BinaryProtocol {
+	
+    public final static int memcache_packetHeaderSize = 24;  //二进制协议头 长度固定为 24字节
+	
 
 	public static final String VALUE = "VALUE";
 	public static final String STATS = "STAT";
@@ -26,8 +29,9 @@ public final class BinaryProtocol {
 	public static final byte[] B_NOTFOUND = "NOT_FOUND\r\n".getBytes();
 	public static final byte[] B_DELETED = "DELETED\r\r".getBytes();
 	public static final byte[] B_STORED = "STORED\r\r".getBytes();
-	public static final byte MAGIC_REQ = -128;
-	public static final byte MAGIC_RESP = -127;
+	
+	public static final byte MAGIC_REQ = (byte) (0x80 & 0xFF);
+	public static final byte MAGIC_RESP = (byte) (0x81 & 0xFF);
 	public static final int F_COMPRESSED = 2;
 	public static final int F_SERIALIZED = 8;
 	public static final int STAT_NO_ERROR = 0;
@@ -38,6 +42,7 @@ public final class BinaryProtocol {
 	public static final int STAT_ITEM_NOT_STORED = 5;
 	public static final int STAT_UNKNOWN_COMMAND = 129;
 	public static final int STAT_OUT_OF_MEMORY = 130;
+	
 	public static final byte OPCODE_GET = 0;
 	public static final byte OPCODE_SET = 1;
 	public static final byte OPCODE_ADD = 2;
@@ -58,6 +63,7 @@ public final class BinaryProtocol {
 	public static final byte OPCODE_AUTH_LIST = 32;
 	public static final byte OPCODE_START_AUTH = 33;
 	public static final byte OPCODE_AUTH_STEPS = 34;
+	
 	public static final byte AUTH_FAILED = 32;
 	public static final byte FURTHER_AUTH = 33;
 	public final byte[] BLAND_DATA_SIZE = "       ".getBytes();
@@ -78,22 +84,27 @@ public final class BinaryProtocol {
 	
 	public static final byte PROTOCOL_BINARY_RAW_BYTES = 0;
 	
+    /**
+     * Definition of the valid response status numbers.
+     * See section 3.2 Response Status
+     */
+	public static final short PROTOCOL_BINARY_RESPONSE_SUCCESS         = 0x0000;//	No error
+	public static final short PROTOCOL_BINARY_RESPONSE_KEY_ENOENT     = 0x0001;//	Key not found
+	public static final short PROTOCOL_BINARY_RESPONSE_KEY_EEXISTS       = 0x0002;//	Key exists
+	public static final short PROTOCOL_BINARY_RESPONSE_E2BIG   = 0x0003;//	Value too large
+	public static final short PROTOCOL_BINARY_RESPONSE_EINVAL     = 0x0004;//	Invalid arguments
+	public static final short PROTOCOL_BINARY_RESPONSE_NOT_STORED       = 0x0005;//	Item not stored
+	public static final short PROTOCOL_BINARY_RESPONSE_DELTA_BADVAL       = 0x0006;//	Incr/Decr on non-numeric value.
+	public static final short PROTOCOL_BINARY_RESPONSE_VBUCKETANOTHER  = 0x0007;//	The vbucket belongs to another server
+	public static final short PROTOCOL_BINARY_RESPONSE_AUTH_ERROR       = 0x0020;//	Authentication error
+	public static final short PROTOCOL_BINARY_RESPONSE_AUTH_CONTINUE    = 0x0021;//	Authentication continue
+	public static final short PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND      = 0x0081;//	Unknown command
+	public static final short PROTOCOL_BINARY_RESPONSE_ENOMEM     = 0x0082;//	Out of memory
+
 	
-	public static final short noerror         = 0x0000;//	No error
-	public static final short keyNotFound     = 0x0001;//	Key not found
-	public static final short keyExists       = 0x0002;//	Key exists
-	public static final short valueTooLarge   = 0x0003;//	Value too large
-	public static final short inValidArgs     = 0x0004;//	Invalid arguments
-	public static final short notStored       = 0x0005;//	Item not stored
-	public static final short crnonValue      = 0x0006;//	Incr/Decr on non-numeric value.
-	public static final short vbucketAnother  = 0x0007;//	The vbucket belongs to another server
-	public static final short autherror       = 0x0008;//	Authentication error
-	public static final short authContinue    = 0x0009;//	Authentication continue
-	public static final short unknownCmd      = 0x0081;//	Unknown command
-	public static final short outOfMemory     = 0x0082;//	Out of memory
-	public static final short notSupported    = 0x0083;//	Not supported
-	public static final short interError      = 0x0084;//	Internal error
-	public static final short busy            = 0x0085;//	Busy
-	public static final short tmpfail         = 0x0086;//	Temporary failure
+	//	public static final short PROTOCOL_BINARY_RESPONSE_NOTSUPPORTED    = 0x0083;//	Not supported
+//	public static final short PROTOCOL_BINARY_RESPONSE_INTERERROR      = 0x0084;//	Internal error
+//	public static final short PROTOCOL_BINARY_RESPONSE_BUSY            = 0x0085;//	Busy
+//	public static final short PROTOCOL_BINARY_RESPONSE_TMPFAIL         = 0x0086;//	Temporary failure
 
 }

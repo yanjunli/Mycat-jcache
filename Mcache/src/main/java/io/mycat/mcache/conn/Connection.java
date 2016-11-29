@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.mycat.mcache.conn.handler.BinaryRequestHeader;
+import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 import io.mycat.mcache.conn.handler.IOHandler;
 import io.mycat.mcache.model.Protocol;
 
@@ -36,7 +37,12 @@ public class Connection implements Closeable,Runnable{
     /**
      * 二进制请求头
      */
-    private BinaryRequestHeader binaryHeader = new BinaryRequestHeader();
+    private BinaryRequestHeader binaryHeader = new BinaryRequestHeader();  //当前连接的多个请求 使用同一个 header 对象， 减少对象创建
+    
+    /**
+     * 二进制 响应头
+     */
+    private BinaryResponseHeader binaryResponse = new BinaryResponseHeader();  //当前连接的多个请求 使用同一个 response对象，减少对象创建
     
     
     public Connection(SocketChannel channel){
@@ -65,6 +71,14 @@ public class Connection implements Closeable,Runnable{
     
     public BinaryRequestHeader getBinaryRequestHeader(){
     	return this.binaryHeader;
+    }
+    
+    public void setBinaryResponseHeader(BinaryResponseHeader binaryResponse){
+    	this.binaryResponse = binaryResponse;
+    }
+    
+    public BinaryResponseHeader getBinaryResponseHeader(){
+    	return this.binaryResponse;
     }
     
 	@Override

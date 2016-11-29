@@ -16,8 +16,6 @@ import io.mycat.mcache.model.Protocol;
 public class IOHandler{
 	
     public static Logger logger = LoggerFactory.getLogger(Connection.class);
-    
-    public final static int memcache_packetHeaderSize = 24;  //二进制协议头 长度固定为 24字节
 
 	public IOHandler() throws IOException {}
 	
@@ -28,7 +26,7 @@ public class IOHandler{
 	}
 
 	public void doReadHandler(Connection conn) throws IOException{
-		logger.debug("handleReadEvent(): {}", conn);
+		logger.debug("handleReadEvent(): {}", this);
         final ByteBuffer buffer = conn.getReadDataBuffer();
         Command command = null;
 
@@ -60,55 +58,39 @@ public class IOHandler{
     			 	+ "ready to handle the next read event", conn.getId(), buffer.hashCode(), length, limit);
     			return;
     		}
-    		if(length == memcache_packetHeaderSize){
+    		if(length == BinaryProtocol.memcache_packetHeaderSize){
     			// @todo handle empty packet
     			return;
     		}
-    		
-    		BinaryRequestHeader header = conn.getBinaryRequestHeader();
-    		
-    		header.setMagic(buffer.get(0));
-    		header.setOpcode(buffer.get(1));
-    		header.setKeylen(buffer.getShort(2));
-    		header.setExtlen(buffer.get(4));
-    		header.setDatatype(buffer.get(5));
-    		header.setReserved(buffer.getShort(6));
-    		header.setBodylen(buffer.getInt(8));
-    		header.setOpaque(buffer.getInt(12));
-    		header.setCas(buffer.getLong(16));
-    		// 解析报文类型
-    		int keystart  = memcache_packetHeaderSize+ header.getExtlen();
-    		int valuestart = keystart + header.getKeylen();
-    		int totalBodylength = header.getBodylen();
-    		int valuelength = totalBodylength - header.getExtlen() - header.getKeylen();
-    		System.out.println("keystart :"+keystart+" keylegth: "+header.getKeylen());
-    		System.out.println("valuestart"+valuestart+":valuelength:"+valuelength);
-    		//获取key 和value 
-//    		byte[] key = new byte[limit];
-//    		ByteBuffer  keybuffer = buffer.get(key,keystart, header.getKeylen());
-//    		byte[] value = new byte[limit];
-//    		buffer.get(value,valuestart, valuelength);
-    		ByteBuffer key = getBytes(buffer,keystart, header.getKeylen());
-    		ByteBuffer value = getBytes(buffer,valuestart, valuelength);
-    		System.out.println("valuestart"+valuestart+":valuelength:"+valuelength);
+    		/**
+    		 * 解析 request header
+    		 */
+    		readRequestHeader(conn,buffer);
     		//执行命令
-    		command = CommandContext.getCommand(header.getOpcode());    		
-    		command.execute(conn,key,value);
+    		command = CommandContext.getCommand(conn.getBinaryRequestHeader().getOpcode());    		
+    		command.execute(conn);
         }else{  //如果是文本协议
         	
         }
-
-
 	}
 	
-	public ByteBuffer getBytes(ByteBuffer mapBuf,int index,int length) throws IOException {
-		int oldPos=mapBuf.position();
-		mapBuf.position(index);
-		ByteBuffer copyBuf=mapBuf.slice();
-		copyBuf.limit(length);
-		mapBuf.position(oldPos);
-		return copyBuf;
-		
+	/**
+	 * 解析请求头
+	 * @param conn
+	 * @return
+	 * @throws IOException
+	 */
+	public void readRequestHeader(Connection conn,ByteBuffer buffer) throws IOException {
+		BinaryRequestHeader header = conn.getBinaryRequestHeader();
+		header.setMagic(buffer.get(0));
+		header.setOpcode(buffer.get(1));
+		header.setKeylen(buffer.getShort(2));
+		header.setExtlen(buffer.get(4));
+		header.setDatatype(buffer.get(5));
+		header.setReserved(buffer.getShort(6));
+		header.setBodylen(buffer.getInt(8));
+		header.setOpaque(buffer.getInt(12));
+		header.setCas(buffer.getLong(16));
 	}
 	
 	/**
@@ -118,7 +100,7 @@ public class IOHandler{
 	 * @return
 	 */
 	private boolean validateHeader(final long offset, final long position){
-		return position >= (offset + memcache_packetHeaderSize);
+		return position >= (offset + BinaryProtocol.memcache_packetHeaderSize);
 	}
 	
 	/**
@@ -133,7 +115,7 @@ public class IOHandler{
 		length |= (buffer.get(++offset) & 0xff) << 16;
 		length |= (buffer.get(++offset) & 0xff) << 8;
 		length |= (buffer.get(++offset) & 0xff) ;
-		return length + memcache_packetHeaderSize;
+		return length + BinaryProtocol.memcache_packetHeaderSize;
 	}
 
 }

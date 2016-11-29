@@ -15,7 +15,7 @@ public class CommandContext {
 	
 	static {
 		commandMap.put(CommandType.set, new BinarySetCommand());
-		commandMap.put(CommandType.set, new BinarySetCommand());
+		commandMap.put(CommandType.get, new BinaryGetCommand());
 	}
 	
 	private CommandContext(){}
