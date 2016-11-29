@@ -58,7 +58,6 @@ public class AppTest {
 	
 	@Test
 	public void testsetCommand(){
-		
         boolean result = mcc.set("foo", "This is a test String");
         System.out.println(result);
         String bar = mcc.get("foo").toString();
