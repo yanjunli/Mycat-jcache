@@ -45,5 +45,9 @@ public final class McacheGlobalConfig {
 	 * - 可能值：ascii,binary,auto（默认）
 	 */
 	public static Protocol prot = Protocol.negotiating;
+	
+	public static void main(String[] args) {
+		System.out.println(-127&0xff);
+	}
 
 }

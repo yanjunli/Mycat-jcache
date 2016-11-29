@@ -7,48 +7,46 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.LinkedList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mycat.mcache.McacheGlobalConfig;
-import io.mycat.mcache.conn.handler.AsciiIOHandler;
-import io.mycat.mcache.conn.handler.BinaryIOHandler;
+import io.mycat.mcache.conn.handler.BinaryRequestHeader;
+import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 import io.mycat.mcache.conn.handler.IOHandler;
+import io.mycat.mcache.model.Protocol;
 
 /**
  * 
  * @author liyanjun
  *
  */
-public abstract class Connection implements Closeable,Runnable{
+public class Connection implements Closeable,Runnable{
 	
     public static Logger logger = LoggerFactory.getLogger(Connection.class);
     
     private SelectionKey selectionKey;
 	protected final SocketChannel channel;
-	private ConDataBuffer writeBuffer;
-	protected ConDataBuffer readBuffer;
+	private ByteBuffer writeBuffer;  //读缓冲区
+	protected ByteBuffer readBuffer; //写缓冲区
 	private long id;
 	private boolean isClosed;    
-    private IOHandler ioHandler;
+    private IOHandler ioHandler;  //io 协议处理类
+    private Protocol protocol;  //协议类型
+    
     /**
-     * 当前命令
+     * 二进制请求头
      */
-    private byte curOpcode;
+    private BinaryRequestHeader binaryHeader = new BinaryRequestHeader();  //当前连接的多个请求 使用同一个 header 对象， 减少对象创建
+    
+    /**
+     * 二进制 响应头
+     */
+    private BinaryResponseHeader binaryResponse = new BinaryResponseHeader();  //当前连接的多个请求 使用同一个 response对象，减少对象创建
     
     
     public Connection(SocketChannel channel){
         this.channel = channel;
-    }
-    
-    public void setOpCode(byte curOpcode){
-    	this.curOpcode = curOpcode;
-    }
-    
-    public byte getOpCode(){
-    	return curOpcode;
     }
     
     public long getId(){
@@ -57,6 +55,30 @@ public abstract class Connection implements Closeable,Runnable{
     
     public void setId(long id){
     	this.id = id;
+    }
+    
+    public void setProtocol(Protocol protocol){
+    	this.protocol = protocol;
+    }
+    
+    public Protocol getProtocol(){
+    	return this.protocol;
+    }
+    
+    public void setBinaryRequestHeader(BinaryRequestHeader binaryHeader){
+    	this.binaryHeader = binaryHeader;
+    }
+    
+    public BinaryRequestHeader getBinaryRequestHeader(){
+    	return this.binaryHeader;
+    }
+    
+    public void setBinaryResponseHeader(BinaryResponseHeader binaryResponse){
+    	this.binaryResponse = binaryResponse;
+    }
+    
+    public BinaryResponseHeader getBinaryResponseHeader(){
+    	return this.binaryResponse;
     }
     
 	@Override
@@ -69,59 +91,13 @@ public abstract class Connection implements Closeable,Runnable{
         String maprFileName=id+".rtmp";
         String mapwFileName=id+".wtmp";
         logger.info("connection bytebuffer mapped "+maprFileName);
-        readBuffer =new MappedFileConDataBuffer(maprFileName); // 这里还可以使用unsafe 大法...
-        writeBuffer=new MappedFileConDataBuffer(mapwFileName);
-		setIOHandler();
+        readBuffer = ByteBuffer.allocate(1024); // 这里还可以使用unsafe 大法...
+        writeBuffer=ByteBuffer.allocate(1024);
+        ioHandler = new IOHandler();
 		// 绑定会话
 		selectionKey.attach(this);  //会在 reactor 中被调用
         this.ioHandler.onConnected(this);
 	}
-	
-	/**
-	 * 根据协议 选择相应的io处理器
-	 * @throws IOException
-	 */
-	private void setIOHandler()throws IOException  {
-		switch (McacheGlobalConfig.prot) {
-		case ascii:
-			ioHandler = new AsciiIOHandler();
-			break;
-		case binary:
-			ioHandler = new BinaryIOHandler();
-			break;
-		default:
-			ioHandler = new BinaryIOHandler();
-			break;
-		}
-	}
-	
-//	public void writeData(byte[] data) throws IOException {
-//		while (!writingFlag.compareAndSet(false, true)) {
-//			// wait until release
-//		}
-//		try {
-//			ByteBuffer theWriteBuf = writeBuffer;
-//			if (theWriteBuf==null && writeQueue.isEmpty()) {
-//				writeToChannel(ByteBuffer.wrap(data));
-//			} else {
-//				writeQueue.add(ByteBuffer.wrap(data));
-//				writeToChannel(theWriteBuf);
-//			}
-//			
-//		} finally {
-//			// release
-//			writingFlag.lazySet(false);
-//
-//		}
-//
-//	}
-//	
-//    private boolean write0() throws IOException {
-//    	final ConDataBuffer buffer = this.writeBuffer;
-//    	final int written = buffer.transferTo(this.channel);
-//    	final int remains = buffer.writingPos() - buffer.readPos();
-//    	return (remains == 0);
-//    }
 	
 	@Override
 	public void run() {
@@ -146,6 +122,7 @@ public abstract class Connection implements Closeable,Runnable{
 				logger.warn(this + " " + e);
 			}
 			close("program err:" + e.toString());
+			
 		}
 	}
 	
@@ -154,14 +131,15 @@ public abstract class Connection implements Closeable,Runnable{
 	 * @throws IOException
 	 */
 	public void asynRead() throws IOException{
-		final ConDataBuffer buffer = readBuffer;
-		final int got =  buffer.transferFrom(channel);
+//		final ConDataBuffer buffer = readBuffer;
+//		final int got =  buffer.transferFrom(channel);
+		final int got = channel.read(readBuffer);
 		switch (got) {
 	        case 0: {
 	            // 如果空间不够了，继续分配空间读取
-	            if (readBuffer.isFull()) {
-	                // @todo extends
-	            }
+//	            if (readBuffer.isFull()) {
+//	                // @todo extends
+//	            }
 	            break;
 	        }
 	        case -1: {
@@ -169,7 +147,9 @@ public abstract class Connection implements Closeable,Runnable{
 	            break;
 	        }
 	        default: {
+	        	logger.info(" read bytes {}.",got);
 	        	// 处理指令
+	        	readBuffer.flip();
 				ioHandler.doReadHandler(this);
 	        }
 	 	}
@@ -180,10 +160,12 @@ public abstract class Connection implements Closeable,Runnable{
 	 * @throws IOException
 	 */
 	public void asynWrite() throws IOException{
-		ioHandler.doWriterHandler(this);	
-		this.writeBuffer.transferTo(channel);
-		final int remains = writeBuffer.writingPos() - writeBuffer.readPos();
+		int writed = channel.write(writeBuffer);
+		
+		logger.warn("writed data length:{}",writed);
+		final int remains = writeBuffer.remaining();
 		boolean noMoreData = remains==0;
+		logger.warn("has mordata :{}",noMoreData);
 		if (noMoreData) {
 		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) != 0)) {
 		        disableWrite();
@@ -214,6 +196,7 @@ public abstract class Connection implements Closeable,Runnable{
         try {
             SelectionKey key = this.selectionKey;
             key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+            logger.warn("disable write con " + this);
         } catch (Exception e) {
             logger.warn("can't disable write " + e + " con " + this);
         }
@@ -239,12 +222,12 @@ public abstract class Connection implements Closeable,Runnable{
     	// 清理资源占用
         if(readBuffer!=null)
         {
-        	readBuffer.recycle();
+//        	readBuffer.recycle();
         	readBuffer=null;
         }
         if(this.writeBuffer!=null)
         {
-        	writeBuffer.recycle();
+//        	writeBuffer.recycle();
         	writeBuffer=null;
         }
     }
@@ -266,11 +249,11 @@ public abstract class Connection implements Closeable,Runnable{
         }
     }
 
-	public ConDataBuffer getReadDataBuffer() {
+	public ByteBuffer getReadDataBuffer() {
 		return this.readBuffer;
 	}
 	
-	public ConDataBuffer getWriteBuffer(){
+	public ByteBuffer getWriteBuffer(){
 		return this.writeBuffer;
 	}
 }

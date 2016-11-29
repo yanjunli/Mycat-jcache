@@ -14,6 +14,6 @@ public interface ReactorStrategy {
 	 * @param reactors
 	 * @return
 	 */
-	int getNextReactor(NIOReactor[] reactors,int lastreactor);
+	public int getNextReactor(NIOReactor[] reactors,int lastreactor);
 	
 }

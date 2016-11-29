@@ -11,10 +11,11 @@ import java.util.Map;
  */
 public class CommandContext {
 	
-	private static Map<CommandType,Command> commandMap = new HashMap<>();
+	private static Map<Object,Command> commandMap = new HashMap<>();
 	
 	static {
-		commandMap.put(CommandType.set, new SetCommand());
+		commandMap.put(CommandType.set, new BinarySetCommand());
+		commandMap.put(CommandType.get, new BinaryGetCommand());
 	}
 	
 	private CommandContext(){}

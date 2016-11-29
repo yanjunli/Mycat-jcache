@@ -15,9 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import io.mycat.mcache.conn.ConnectIdGenerator;
 import io.mycat.mcache.conn.Connection;
-import io.mycat.mcache.conn.MemConnection;
-import io.mycat.mcache.conn.handler.BinaryIOHandler;
-import io.mycat.mcache.conn.handler.IOHandler;
 
 /**
  * @author liyanjun
@@ -80,9 +77,9 @@ public final class TCPNIOAcceptor extends Thread {
 			channel.configureBlocking(false);
 			// 派发此连接到某个Reactor处理
 			NIOReactor reactor = reactorPool.getNextReactor();
-			Connection conn = new MemConnection(channel);
+			Connection conn = new Connection(channel);
 			conn.setId(ConnectIdGenerator.getINSTNCE().getId());
-			//TODO 需要更多的conn 属性需要设置
+			conn.setProtocol(McacheGlobalConfig.prot);
 			reactor.registerNewClient(conn);
 		} catch (Throwable e) {
 			closeChannel(channel);
