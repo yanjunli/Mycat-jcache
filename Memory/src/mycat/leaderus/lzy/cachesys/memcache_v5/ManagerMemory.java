@@ -51,17 +51,21 @@ public class ManagerMemory {
         }
         if(empty[index].size()!=0) {
             tmpChunk = empty[index].remove();
-            used[index].add(tmpChunk);
         }else {
             throw new RuntimeException("内存暂时不足");
         }
         return tmpChunk;
     }
-    static void removeChunk(Chunk e){
+    static void addUsed(Chunk e){
+        used[e.getByteBuffer().capacity()/ MemConfig.CHUNK_SIZES-1].add(e);
+    }
+
+    static boolean removeChunk(Chunk e){
         int index = e.getByteBuffer().capacity()/MemConfig.CHUNK_SIZES-1;
         ReadWritePool.remove(e.getKey());
         used[index].remove(e);
         empty[index].add(e);
+        return true;
     }
     static boolean removeEmptyChunk(Chunk e){
         int index = e.getByteBuffer().capacity()/MemConfig.CHUNK_SIZES-1;

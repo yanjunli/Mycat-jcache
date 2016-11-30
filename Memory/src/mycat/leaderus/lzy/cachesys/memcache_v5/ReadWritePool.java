@@ -10,18 +10,20 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ReadWritePool {
     private static ConcurrentHashMap<String, Chunk> cache = new ConcurrentHashMap();
 
-    public static boolean put(String key, byte[] data, long timeout){
+    public static boolean set(String key, byte[] data, long timeout){
+        boolean b = cache.get(key)!=null?ManagerMemory.removeChunk(cache.get(key)):false;
         Chunk tmp = ManagerMemory.getChunk(data.length);
         tmp.setKey(key);
         tmp.setTimeout(timeout);
         tmp.getByteBuffer().put(data).flip();
         cache.put(key,tmp);
+        ManagerMemory.addUsed(tmp);
         return true;
     }
 
     public static byte[] get(String key){
         byte[] tmp = null;
-        Chunk tmpChunk = cache.get(key);
+        Chunk tmpChunk = cache.get(key);;
         if(tmpChunk!=null) {
             if (tmpChunk.getTimeout() > System.currentTimeMillis()) {
                 ByteBuffer buffer = cache.get(key).getByteBuffer();
@@ -33,6 +35,60 @@ public class ReadWritePool {
             }
         }
         return tmp;
+    }
+
+    public static boolean add(String key, byte[] data, long timeout){
+        boolean b = cache.get(key)!=null?true:false;
+        if(!b){
+            set(key,data,timeout);
+            return true;
+        }else {
+            return false;
+        }
+
+    }
+
+    public static boolean repalce(String key, byte[] data, long timeout){
+        boolean b = cache.get(key)!=null?true:false;
+        if(b){
+            Chunk tmp = cache.get(key);
+            if(!(tmp.getByteBuffer().capacity()<data.length)) {
+                ManagerMemory.removeUsedChunk(tmp);
+                ((ByteBuffer) tmp.getByteBuffer().clear()).put(data).flip();
+                tmp.setTimeout(timeout);
+                ManagerMemory.addUsed(tmp);
+            }else{
+                ManagerMemory.removeChunk(tmp);
+                set(key,data,timeout);
+            }
+            return true;
+        }
+        return false;
+
+    }
+
+    public static boolean append(String key, byte[] data, long timeout){
+        boolean b = cache.get(key)!=null?true:false;
+        if(b) {
+            Chunk tmp = cache.get(key);
+            ManagerMemory.removeUsedChunk(tmp);
+            byte[] tmpbytes = new byte[tmp.getByteBuffer().limit()];
+            tmp.getByteBuffer().get(tmpbytes).flip();
+            byte[] newbytes = new byte[tmpbytes.length + data.length];
+            System.arraycopy(tmpbytes, 0, newbytes, 0, tmpbytes.length);
+            System.arraycopy(data, 0, newbytes, tmpbytes.length, data.length);
+            if (newbytes.length <= tmp.getByteBuffer().capacity()) {
+                ((ByteBuffer) tmp.getByteBuffer().clear()).put(newbytes);
+                tmp.setTimeout(timeout);
+                ManagerMemory.addUsed(tmp);
+            } else {
+                ManagerMemory.addUsed(tmp);
+                ManagerMemory.removeChunk(tmp);
+                set(key, newbytes, timeout);
+            }
+            return true;
+        }
+        return false;
     }
 
     static void remove(String key){
