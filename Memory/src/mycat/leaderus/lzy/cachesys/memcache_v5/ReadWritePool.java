@@ -78,7 +78,7 @@ public class ReadWritePool {
             System.arraycopy(tmpbytes, 0, newbytes, 0, tmpbytes.length);
             System.arraycopy(data, 0, newbytes, tmpbytes.length, data.length);
             if (newbytes.length <= tmp.getByteBuffer().capacity()) {
-                ((ByteBuffer) tmp.getByteBuffer().clear()).put(newbytes);
+                ((ByteBuffer) tmp.getByteBuffer().clear()).put(newbytes).flip();
                 tmp.setTimeout(timeout);
                 ManagerMemory.addUsed(tmp);
             } else {
