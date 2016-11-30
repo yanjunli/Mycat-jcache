@@ -20,15 +20,19 @@ public class ManagerMemory {
 
             @Override
             public void run() {
+                LinkedBlockingQueue<Chunk> tmp = new  LinkedBlockingQueue<Chunk>();
+                Chunk tmpChunk = null;
                 while (true){
-                    Iterator<Chunk> tmp = null;
-                    Chunk tmpChunk = null;
                     for (int i = 0; i < used.length ; i++) {
-                        tmp = used[i].iterator();
-                        while(tmp.hasNext()){
-                            tmpChunk = tmp.next();
+                        tmp.clear();
+                        while((tmpChunk=used[i].remove())!=null){
                             if (tmpChunk.getTimeout()<System.currentTimeMillis())
-                                removeChunk(tmpChunk);
+                                empty[i].add(tmpChunk);
+                            else
+                                tmp.add(tmpChunk);
+                        }
+                        if(tmp.size()>0){
+                            used[i].addAll(tmp);
                         }
                     }
                     try {

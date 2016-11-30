@@ -15,7 +15,7 @@ public class ReadWritePool {
         Chunk tmp = ManagerMemory.getChunk(data.length);
         tmp.setKey(key);
         tmp.setTimeout(timeout);
-        tmp.getByteBuffer().put(data).flip();
+        ((ByteBuffer)tmp.getByteBuffer().clear()).put(data).flip();
         cache.put(key,tmp);
         ManagerMemory.addUsed(tmp);
         return true;

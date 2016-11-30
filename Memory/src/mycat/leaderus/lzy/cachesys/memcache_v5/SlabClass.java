@@ -12,6 +12,7 @@ public class SlabClass {
     private static ByteBuffer allMem = ByteBuffer.allocateDirect(Integer.MAX_VALUE);
     private static LinkedBlockingQueue<Slab> slabs = new LinkedBlockingQueue<Slab>();
     private static LinkedBlockingQueue<Slab> used = new LinkedBlockingQueue<Slab>();
+    private static LinkedBlockingQueue<Slab> tmpUsed = new LinkedBlockingQueue<Slab>();
     static {
         for (int i = 0; i < Integer.MAX_VALUE/MemConfig.SLAB_SIZE ; i++) {
             allMem.position(i*MemConfig.SLAB_SIZE);
@@ -26,6 +27,7 @@ public class SlabClass {
                     if(used.size()>0) {
                         Slab tmp = null;
                         boolean flag = false;
+
                         while ((tmp = used.remove())!=null){
                             long timeout = System.currentTimeMillis();
                             Chunk[] tmpChunks = tmp.getChunks();
@@ -42,7 +44,13 @@ public class SlabClass {
                             }
                             if(!flag){
                                 slabs.add(tmp);
+                            }else {
+                                tmpUsed.add(tmp);
                             }
+                        }
+                        if(tmpUsed.size()>0){
+                            used.addAll(tmpUsed);
+                            tmpUsed.clear();
                         }
                     }
                     try {
