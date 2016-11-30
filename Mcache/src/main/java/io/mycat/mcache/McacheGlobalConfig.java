@@ -52,8 +52,9 @@ public final class McacheGlobalConfig {
 	/** Maximum length of a value */
 	public static final long VALUE_MAX_LENGTH=1024*1024;
 	
-	public static void main(String[] args) {
-		System.out.println(-127&0xff);
-	}
+	/**
+	 * key 的最大长度
+	 */
+	public static int KEY_MAX_LENGTH = 250;
 
 }

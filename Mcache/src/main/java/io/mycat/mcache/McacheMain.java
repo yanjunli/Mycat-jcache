@@ -3,10 +3,6 @@ package io.mycat.mcache;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.apache.logging.log4j.core.util.Assert;
 
 import io.mycat.mcache.Strategy.ReactorSelectEnum;
 import io.mycat.mcache.Strategy.ReactorStrategy;

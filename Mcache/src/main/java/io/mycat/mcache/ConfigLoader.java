@@ -8,9 +8,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mycat.mcache.model.Protocol;
-import sun.applet.Main;
-
 /**
  * 配置加载器
  * @author lyj

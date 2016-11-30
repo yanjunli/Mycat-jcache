@@ -48,6 +48,6 @@ public enum CommandType {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(0x20);
+		System.out.println(1 << 1);
 	}
 }

@@ -57,10 +57,11 @@ public final class NIOReactor extends Thread{
 				}
 				keys = selector.selectedKeys();
 				for(SelectionKey key:keys)
-				{			
+				{
 					Connection con = (Connection)key.attachment();
 					logger.debug("select-key-readyOps = {}, attachment = {}", key.readyOps(), con);
 					this.executor.execute(con);
+//					con.run();
 				}
 			} catch (Throwable e) {
 				logger.warn(getName(), e);

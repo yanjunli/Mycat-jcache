@@ -88,10 +88,7 @@ public class Connection implements Closeable,Runnable{
 		
 	public void register(Selector selector)  throws IOException {
 		selectionKey = channel.register(selector, SelectionKey.OP_READ);
-        String maprFileName=id+".rtmp";
-        String mapwFileName=id+".wtmp";
-        logger.info("connection bytebuffer mapped "+maprFileName);
-        readBuffer = ByteBuffer.allocate(1024); // 这里还可以使用unsafe 大法...
+        readBuffer = ByteBuffer.allocate(1024); // 这里可以修改成从内存模块获取
         writeBuffer=ByteBuffer.allocate(1024);
         ioHandler = new IOHandler();
 		// 绑定会话
@@ -165,9 +162,10 @@ public class Connection implements Closeable,Runnable{
 		logger.warn("writed data length:{}",writed);
 		final int remains = writeBuffer.remaining();
 		boolean noMoreData = remains==0;
-		logger.warn("has mordata :{}",noMoreData);
+		logger.warn("nodata :{}",noMoreData);
 		if (noMoreData) {
 		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) != 0)) {
+		    	writeBuffer.clear();
 		        disableWrite();
 		    }
 
@@ -182,6 +180,7 @@ public class Connection implements Closeable,Runnable{
         boolean needWakeup = false;
         SelectionKey key = this.selectionKey;
         try {
+        	logger.info("enable write ");
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
             needWakeup = true;
         } catch (Exception e) {

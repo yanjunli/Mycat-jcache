@@ -85,7 +85,7 @@ public interface Command {
 	}
 	
 	/**
-	 * Set, Add, Replace  指令 response
+	 *  response no body
 	 * @param conn
 	 * @param opcode
 	 * @param status
@@ -107,7 +107,8 @@ public interface Command {
 	}
 	
 	/**
-	 * 返回结果 
+	 * 待优化
+	 *  response no body
 	 * @param conn
 	 */
 	public default void writeResponse(Connection conn,BinaryResponseHeader header,byte[] extras,byte[] key,byte[] value){
@@ -121,6 +122,15 @@ public interface Command {
 		write.putInt(header.getBodylen());
 		write.putInt(header.getOpaque());
 		write.putLong(header.getCas());
+		if(extras!=null){
+			write.put(extras);
+		}
+		if(key!=null){
+			write.put(key);
+		}
+		if(value!=null){
+			write.put(value);
+		}
 		write.flip();
 		conn.enableWrite(true);
 	}

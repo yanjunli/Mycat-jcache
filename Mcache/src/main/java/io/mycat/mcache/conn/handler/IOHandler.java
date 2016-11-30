@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import io.mycat.mcache.McacheGlobalConfig;
 import io.mycat.mcache.command.Command;
 import io.mycat.mcache.command.CommandContext;
-import io.mycat.mcache.conn.ConDataBuffer;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.model.Protocol;
 

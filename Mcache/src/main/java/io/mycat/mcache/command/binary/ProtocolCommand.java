@@ -69,4 +69,9 @@ public enum ProtocolCommand {
     }
 
     private byte command;
+    
+    public byte getByte(){
+    	return this.command;
+    }
+    
 }

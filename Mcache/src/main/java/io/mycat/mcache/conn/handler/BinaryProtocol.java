@@ -88,18 +88,18 @@ public final class BinaryProtocol {
      * Definition of the valid response status numbers.
      * See section 3.2 Response Status
      */
-	public static final short PROTOCOL_BINARY_RESPONSE_SUCCESS         = 0x0000;//	No error
-	public static final short PROTOCOL_BINARY_RESPONSE_KEY_ENOENT     = 0x0001;//	Key not found
-	public static final short PROTOCOL_BINARY_RESPONSE_KEY_EEXISTS       = 0x0002;//	Key exists
-	public static final short PROTOCOL_BINARY_RESPONSE_E2BIG   = 0x0003;//	Value too large
-	public static final short PROTOCOL_BINARY_RESPONSE_EINVAL     = 0x0004;//	Invalid arguments
-	public static final short PROTOCOL_BINARY_RESPONSE_NOT_STORED       = 0x0005;//	Item not stored
-	public static final short PROTOCOL_BINARY_RESPONSE_DELTA_BADVAL       = 0x0006;//	Incr/Decr on non-numeric value.
-	public static final short PROTOCOL_BINARY_RESPONSE_VBUCKETANOTHER  = 0x0007;//	The vbucket belongs to another server
-	public static final short PROTOCOL_BINARY_RESPONSE_AUTH_ERROR       = 0x0020;//	Authentication error
-	public static final short PROTOCOL_BINARY_RESPONSE_AUTH_CONTINUE    = 0x0021;//	Authentication continue
-	public static final short PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND      = 0x0081;//	Unknown command
-	public static final short PROTOCOL_BINARY_RESPONSE_ENOMEM     = 0x0082;//	Out of memory
+//	public static final short PROTOCOL_BINARY_RESPONSE_SUCCESS         = 0x0000;//	No error
+//	public static final short PROTOCOL_BINARY_RESPONSE_KEY_ENOENT     = 0x0001;//	Key not found
+//	public static final short PROTOCOL_BINARY_RESPONSE_KEY_EEXISTS       = 0x0002;//	Key exists
+//	public static final short PROTOCOL_BINARY_RESPONSE_E2BIG   = 0x0003;//	Value too large
+//	public static final short PROTOCOL_BINARY_RESPONSE_EINVAL     = 0x0004;//	Invalid arguments
+//	public static final short PROTOCOL_BINARY_RESPONSE_NOT_STORED       = 0x0005;//	Item not stored
+//	public static final short PROTOCOL_BINARY_RESPONSE_DELTA_BADVAL       = 0x0006;//	Incr/Decr on non-numeric value.
+//	public static final short PROTOCOL_BINARY_RESPONSE_VBUCKETANOTHER  = 0x0007;//	The vbucket belongs to another server
+//	public static final short PROTOCOL_BINARY_RESPONSE_AUTH_ERROR       = 0x0020;//	Authentication error
+//	public static final short PROTOCOL_BINARY_RESPONSE_AUTH_CONTINUE    = 0x0021;//	Authentication continue
+//	public static final short PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND      = 0x0081;//	Unknown command
+//	public static final short PROTOCOL_BINARY_RESPONSE_ENOMEM     = 0x0082;//	Out of memory
 
 	
 	//	public static final short PROTOCOL_BINARY_RESPONSE_NOTSUPPORTED    = 0x0083;//	Not supported
