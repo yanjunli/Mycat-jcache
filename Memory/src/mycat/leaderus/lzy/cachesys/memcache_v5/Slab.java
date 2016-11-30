@@ -8,10 +8,10 @@ import java.nio.ByteBuffer;
 public class Slab {
     private Chunk[] chunks;
     private ByteBuffer allChunks;
-    public Slab(ByteBuffer slice) {
+    Slab(ByteBuffer slice) {
         this.allChunks = slice;
     }
-    public Slab init(int size){
+    Slab init(int size){
         chunks = new Chunk[MemConfig.SLAB_SIZE/size];
         for (int i = 0; i < chunks.length ; i++) {
             allChunks.position(i*size);
@@ -20,7 +20,7 @@ public class Slab {
         }
         return this;
     }
-    public Chunk[] getChunks(){
+    Chunk[] getChunks(){
         return this.chunks;
     }
 }

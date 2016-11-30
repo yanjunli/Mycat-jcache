@@ -34,18 +34,18 @@ public class Test {
             tmpUuid[i]= UUID.randomUUID().toString();
         }
         executorService.shutdown();
-        while(true){
+        do {
             //System.out.print("初始化中。。。。。。");
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if(executorService.isTerminated()){
+            if (executorService.isTerminated()) {
                 break;
             }
             //System.out.print("\r");
-        }
+        } while (true);
 
 
 

@@ -17,17 +17,17 @@ public class Chunk {
     private String key;
     private ByteBuffer buffer;
     private long timeout;
-    public Chunk(ByteBuffer slice) {
+    Chunk(ByteBuffer slice) {
         this.buffer = slice;
         this.buffer.clear();
     }
-    public void setTimeout(long timeout){
+    void setTimeout(long timeout){
         this.timeout = timeout;
     }
-    public long getTimeout(){
+    long getTimeout(){
         return this.timeout;
     }
-    public ByteBuffer getByteBuffer(){
+    ByteBuffer getByteBuffer(){
         return this.buffer;
     }
 

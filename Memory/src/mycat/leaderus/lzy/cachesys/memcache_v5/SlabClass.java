@@ -1,6 +1,7 @@
 package mycat.leaderus.lzy.cachesys.memcache_v5;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -18,9 +19,46 @@ public class SlabClass {
             slabs.add(new Slab(allMem.slice()));
         }
 
+        new Thread(){
+            @Override
+            public void run() {
+                while(true){
+                    if(used.size()>0) {
+                        Slab tmp = null;
+                        boolean flag = false;
+                        while ((tmp = used.remove())!=null){
+                            long timeout = System.currentTimeMillis();
+                            Chunk[] tmpChunks = tmp.getChunks();
+                            for (int i = 0; i < tmpChunks.length; i++) {
+                                if(!ManagerMemory.removeEmptyChunk(tmpChunks[i])) {
+                                    if (tmpChunks[i].getTimeout() > timeout) {
+                                        flag = true;
+                                        break;
+                                    }else{
+                                        ManagerMemory.removeUsedChunk(tmpChunks[i]);
+                                        ReadWritePool.remove(tmpChunks[i].getKey());
+                                    }
+                                }
+                            }
+                            if(!flag){
+                                slabs.add(tmp);
+                            }
+                        }
+                    }
+                    try {
+                        sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+
+            }
+        }.start();
+
     }
 
-    public static Slab getSlab(){
+    static Slab getSlab(){
         Slab tmp = null;
         if(slabs.size()>0) {
             tmp = slabs.remove();

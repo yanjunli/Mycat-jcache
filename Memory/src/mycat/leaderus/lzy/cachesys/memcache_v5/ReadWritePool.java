@@ -35,7 +35,7 @@ public class ReadWritePool {
         return tmp;
     }
 
-    protected static void remove(String key){
+    static void remove(String key){
         cache.remove(key);
     }
 

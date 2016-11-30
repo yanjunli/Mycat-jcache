@@ -41,7 +41,7 @@ public class ManagerMemory {
         }.start();
     }
 
-    public static Chunk getChunk(int size){
+    static Chunk getChunk(int size){
         int index = (size-1)/MemConfig.CHUNK_SIZES;
         Chunk tmpChunk = null;
         if(empty[index].size()==0) {
@@ -57,11 +57,18 @@ public class ManagerMemory {
         }
         return tmpChunk;
     }
-
-    public static void removeChunk(Chunk e){
+    static void removeChunk(Chunk e){
         int index = e.getByteBuffer().capacity()/MemConfig.CHUNK_SIZES-1;
         ReadWritePool.remove(e.getKey());
         used[index].remove(e);
         empty[index].add(e);
+    }
+    static boolean removeEmptyChunk(Chunk e){
+        int index = e.getByteBuffer().capacity()/MemConfig.CHUNK_SIZES-1;
+        return empty[index].remove(e);
+    }
+    static boolean removeUsedChunk(Chunk e){
+        int index = e.getByteBuffer().capacity()/MemConfig.CHUNK_SIZES-1;
+        return used[index].remove(e);
     }
 }
