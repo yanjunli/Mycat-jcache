@@ -27,8 +27,4 @@ public enum ProtocolResponseStatus {
      ProtocolResponseStatus(short status){
         this.status = status;
     }
-
-	public short getStatus(){
-    	return this.status;
-    }
 }
