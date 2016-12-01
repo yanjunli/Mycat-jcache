@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 import io.mycat.mcache.McacheGlobalConfig;
+import io.mycat.mcache.command.binary.ProtocolResponseStatus;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 import io.mycat.mcache.conn.handler.BinaryRequestHeader;
@@ -85,6 +86,32 @@ public interface Command {
 	}
 	
 	/**
+	 * build respose header
+	 * @param binaryHeader
+	 * @param opcode
+	 * @param key
+	 * @param value
+	 * @param extras
+	 * @param cas
+	 * @return
+	 */
+	public default BinaryResponseHeader buildHeader(BinaryRequestHeader binaryHeader,byte opcode,
+													byte[] key,byte[] value,byte[] extras,long cas){
+		BinaryResponseHeader header = new BinaryResponseHeader();
+		
+		header.setMagic(BinaryProtocol.MAGIC_RESP);
+		header.setOpcode(BinaryProtocol.OPCODE_GET);
+		header.setKeylen(key!=null?(short)key.length:0);
+		header.setExtlen((byte)extras.length);
+		header.setDatatype(BinaryProtocol.PROTOCOL_BINARY_RAW_BYTES);
+		header.setStatus(ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus());
+		header.setBodylen(value.length+extras.length+(key!=null?(short)key.length:0));
+		header.setOpaque(binaryHeader.getOpaque());
+		header.setCas(cas);
+		return header;
+	}
+	
+	/**
 	 *  response no body
 	 * @param conn
 	 * @param opcode
@@ -102,6 +129,27 @@ public interface Command {
 		write.putInt(0x00);
 		write.putInt(0);
 		write.putLong(cas);
+		write.flip();
+		conn.enableWrite(true);
+	}
+	
+	/**
+	 * 待重构
+	 * @param conn
+	 * @param opcode
+	 * @param status
+	 */
+	public static void writeResponseError(Connection conn,byte opcode,short status){
+		ByteBuffer write = conn.getWriteBuffer();
+		write.put(BinaryProtocol.MAGIC_RESP);
+		write.put(opcode);
+		write.putShort((short)0x0000);
+		write.put((byte)0x00);
+		write.put(BinaryProtocol.PROTOCOL_BINARY_RAW_BYTES);
+		write.putShort(status);
+		write.putInt(0x00);
+		write.putInt(0);
+		write.putLong(0);
 		write.flip();
 		conn.enableWrite(true);
 	}

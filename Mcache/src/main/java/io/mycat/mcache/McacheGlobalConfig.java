@@ -47,7 +47,7 @@ public final class McacheGlobalConfig {
 	public static Protocol prot = Protocol.negotiating;
 	
 	/** Maximum length of a key */
-	public static final int KEY_MAX_LENGTH = 255;
+	public static final int KEY_MAX_LENGTH = 250;
 
 
 	/** Maximum length of a value */

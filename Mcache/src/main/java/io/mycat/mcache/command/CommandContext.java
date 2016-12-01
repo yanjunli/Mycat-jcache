@@ -3,6 +3,8 @@ package io.mycat.mcache.command;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.mycat.mcache.conn.handler.BinaryProtocol;
+
 
 /**
  * 命令上下文
@@ -11,11 +13,15 @@ import java.util.Map;
  */
 public class CommandContext {	
 	
-	private static Map<Object,Command> commandMap = new HashMap<>();
+	private static Map<CommandType,Command> commandMap = new HashMap<>();
 	
 	static {
 		commandMap.put(CommandType.set, new BinarySetCommand());
 		commandMap.put(CommandType.get, new BinaryGetCommand());
+		commandMap.put(CommandType.getk, new BinaryGetKCommand());
+		commandMap.put(CommandType.getkq, new BinaryGetKQCommand());
+		commandMap.put(CommandType.getq, new BinaryGetQCommand());
+
 	}
 	
 	private CommandContext(){}

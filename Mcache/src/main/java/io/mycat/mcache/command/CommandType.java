@@ -3,7 +3,7 @@ package io.mycat.mcache.command;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 
 /**
- * 命令类型
+ * 命令类型  同时支持 二进制 /文本协议查找
  * @author lyj
  *
  */
@@ -13,22 +13,22 @@ public enum CommandType {
 	set(BinaryProtocol.OPCODE_SET),
 	add(BinaryProtocol.OPCODE_ADD),
 	replace(BinaryProtocol.OPCODE_REPLACE),
-	delete((byte)4),
-	increment((byte)5),
-	decrement((byte)6),
-	quit((byte)7),
-	flush((byte)8),
-	getq((byte)9),
-	noop((byte)10),
-	version((byte)11),
-	getk((byte)12),
-	getkq((byte)13),
-	append((byte)14),
-	prepend((byte)15),
-	stat((byte)16),
-	auth_list((byte)32),
-	start_auth((byte)33),
-	auth_steps((byte)34);	
+	delete(BinaryProtocol.OPCODE_DELETE),
+	increment(BinaryProtocol.OPCODE_INCREMENT),
+	decrement(BinaryProtocol.OPCODE_DECREMENT),
+	quit(BinaryProtocol.OPCODE_QUIT),
+	flush(BinaryProtocol.OPCODE_FLUSH),
+	getq(BinaryProtocol.OPCODE_GETQ),
+	noop(BinaryProtocol.OPCODE_NOOP),
+	version(BinaryProtocol.OPCODE_VERSION),
+	getk(BinaryProtocol.OPCODE_GETK),
+	getkq(BinaryProtocol.OPCODE_GETKQ),
+	append(BinaryProtocol.OPCODE_APPEND),
+	prepend(BinaryProtocol.OPCODE_PREPEND),
+	stat(BinaryProtocol.OPCODE_STAT),
+	auth_list(BinaryProtocol.OPCODE_AUTH_LIST),
+	start_auth(BinaryProtocol.OPCODE_START_AUTH),
+	auth_steps(BinaryProtocol.OPCODE_AUTH_STEPS);	
 	
 	CommandType(byte type){
 		this.type = type;
