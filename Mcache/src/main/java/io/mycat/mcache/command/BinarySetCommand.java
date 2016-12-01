@@ -1,12 +1,12 @@
 package io.mycat.mcache.command;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import io.mycat.mcache.McacheGlobalConfig;
 import io.mycat.mcache.command.binary.ProtocolResponseStatus;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * set 命令 
@@ -43,7 +43,7 @@ public class BinarySetCommand implements Command{
 
 		System.out.println("执行set 命令   key: "+new String(cs.decode (key).array()));
 		System.out.println("执行set 命令   value: "+new String(cs.decode (value).array()));
-		
+
 		writeResponse(conn,BinaryProtocol.OPCODE_SET,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus(),1l);
 	}
 }
