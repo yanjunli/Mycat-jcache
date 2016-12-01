@@ -55,6 +55,6 @@ public final class McacheGlobalConfig {
 	/**
 	 * key 的最大长度
 	 */
-	public static int KEY_MAX_LENGTH = 250;
+	// public static int KEY_MAX_LENGTH = 250;
 
 }
