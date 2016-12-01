@@ -63,4 +63,13 @@ public class AppTest {
         String bar = mcc.get("foo").toString();
         System.out.println(">>> " + bar);
 	}
+
+    @Test
+    public void testAddCommand(){
+        mcc.set("test","add command");
+        String str = mcc.get("test").toString();
+        System.out.println(str);
+        boolean result = mcc.add("test", "This is a add command");
+        System.out.println(result);
+    }
 }

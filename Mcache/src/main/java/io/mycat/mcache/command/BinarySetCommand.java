@@ -19,16 +19,27 @@ public class BinarySetCommand implements Command{
 	@Override
 	public void execute(Connection conn) throws IOException {
 		ByteBuffer key = readkey(conn);
-		//key not exists TODO
-		if(key.remaining()>McacheGlobalConfig.KEY_MAX_LENGTH) {
-			writeResponse(conn, BinaryProtocol.OPCODE_SET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_KEY_ENOENT.getStatus(), 1L);
+		//key not exists
+		byte[] ds = new byte[key.remaining()];
+		key.get(ds);
+		if(ds.length>McacheGlobalConfig.KEY_MAX_LENGTH) {
+			writeResponse(conn, BinaryProtocol.OPCODE_SET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_KEY_ENOENT.getStatus(), 0L);
 		}
+
+		//extras
+		ByteBuffer extras = readExtras(conn);
+		extras.limit(extras.position()+4);
+		ByteBuffer flags = extras.slice();
+		extras.position(extras.limit());
+		ByteBuffer expiry = extras.slice();
+
 		ByteBuffer value = readValue(conn);
-		//TODO
 		//value too large
-		if(value.remaining()> McacheGlobalConfig.VALUE_MAX_LENGTH){
-			writeResponse(conn,BinaryProtocol.OPCODE_SET,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_E2BIG.getStatus(),1l);
+		ds = new byte[value.remaining()];
+		if(ds.length> McacheGlobalConfig.VALUE_MAX_LENGTH){
+			writeResponse(conn,BinaryProtocol.OPCODE_SET,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_E2BIG.getStatus(),0l);
 		}
+		//TODO 待存储
 
 		System.out.println("执行set 命令   key: "+new String(cs.decode (key).array()));
 		System.out.println("执行set 命令   value: "+new String(cs.decode (value).array()));

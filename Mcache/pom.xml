@@ -29,6 +29,11 @@
 		<artifactId>slf4j-api</artifactId>
 		<scope>compile</scope>
 	</dependency>
+	  <dependency>
+		  <groupId>io.mycat</groupId>
+		  <artifactId>Memory</artifactId>
+		  <version>0.0.1-DEV</version>
+	  </dependency>
 	<dependency>
 		<groupId>org.apache.logging.log4j</groupId>
 		<artifactId>log4j-slf4j-impl</artifactId>
@@ -40,8 +45,18 @@
 	<dependency>
 	    <groupId>com.whalin</groupId>
 	    <artifactId>Memcached-Java-Client</artifactId>
-	    <version>3.0.0</version>
+	  <version>3.0.0</version>
 	</dependency>
+	  <dependency>
+		  <groupId>io.mycat.memory</groupId>
+		  <artifactId>Mycat-Memory</artifactId>
+		  <version>0.0.1-SNAPSHOT</version>
+	  </dependency>
+	  <dependency>
+		  <groupId>io.mycat.memory</groupId>
+		  <artifactId>Mycat-Memory</artifactId>
+		  <version>0.0.1-SNAPSHOT</version>
+	  </dependency>
   </dependencies>
   
     	<build>
@@ -83,7 +98,7 @@
 				<artifactId>maven-source-plugin</artifactId>
 				<version>2.1.2</version>
 				<configuration>
-					<encoding>${app.encoding}</encoding>
+					<!--<encoding>${app.encoding}</encoding>-->
 					<attach>true</attach>
 				</configuration>
 				<executions>
