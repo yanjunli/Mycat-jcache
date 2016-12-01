@@ -9,7 +9,7 @@ import java.util.Map;
  * @author lyj
  *
  */
-public class CommandContext {
+public class CommandContext {	
 	
 	private static Map<Object,Command> commandMap = new HashMap<>();
 	

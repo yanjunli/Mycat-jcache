@@ -50,9 +50,4 @@ public final class McacheGlobalConfig {
 	/** Maximum length of a value */
 	public static final long VALUE_MAX_LENGTH=1024*1024;
 	
-	/**
-	 * key 的最大长度
-	 */
-	 public static int KEY_MAX_LENGTH = 250;
-
 }
