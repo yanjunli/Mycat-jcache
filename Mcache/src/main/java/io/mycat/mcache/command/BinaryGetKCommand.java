@@ -10,6 +10,20 @@ import java.nio.ByteBuffer;
 
 /**
  * getk 命令 
+   Field        (offset) (value)
+   Magic        (0)    : 0x81
+   Opcode       (1)    : 0x00
+   Key length   (2,3)  : 0x0005
+   Extra length (4)    : 0x04
+   Data type    (5)    : 0x00
+   Status       (6,7)  : 0x0000
+   Total body   (8-11) : 0x00000009
+   Opaque       (12-15): 0x00000000
+   CAS          (16-23): 0x0000000000000001
+   Extras              :
+     Flags      (24-27): 0xdeadbeef
+   Key          (28-32): The textual string: "Hello"
+   Value        (33-37): The textual string: "World"
  * @author liyanjun
  *
  */
