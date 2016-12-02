@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import io.mycat.mcache.McacheGlobalConfig;
 import io.mycat.mcache.command.Command;
 import io.mycat.mcache.command.CommandContext;
+import io.mycat.mcache.command.binary.ProtocolResponseStatus;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.model.Protocol;
 
@@ -65,6 +66,29 @@ public class IOHandler{
     		 * 解析 request header
     		 */
     		readRequestHeader(conn,buffer);
+    		
+    		int keylen = conn.getBinaryRequestHeader().getKeylen();
+    		int bodylen = conn.getBinaryRequestHeader().getBodylen();
+    		int extlen  = conn.getBinaryRequestHeader().getExtlen();
+    	    if (keylen > bodylen || keylen + extlen > bodylen) {
+    	        Command.writeResponseError(conn, 
+    	        						   conn.getBinaryRequestHeader().getOpcode(),
+    	        						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND.getStatus());
+    	        return;
+    	    }
+    	    
+//          TODO    	    
+//    	    if (settings.sasl && !authenticated(c)) {
+//    	        write_bin_error(c, PROTOCOL_BINARY_RESPONSE_AUTH_ERROR, NULL, 0);
+//    	        c->write_and_go = conn_closing;
+//    	        return;
+//    	    }
+    	    if(keylen > McacheGlobalConfig.KEY_MAX_LENGTH) {
+    	    	Command.writeResponseError(conn, 
+						   conn.getBinaryRequestHeader().getOpcode(),
+						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus());
+    			return;
+    	    }
     		//执行命令
     		command = CommandContext.getCommand(conn.getBinaryRequestHeader().getOpcode());    		
     		command.execute(conn);
