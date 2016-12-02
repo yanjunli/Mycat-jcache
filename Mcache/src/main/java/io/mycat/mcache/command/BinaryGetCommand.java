@@ -12,6 +12,20 @@ import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 
 /**
  * get 命令 
+   Field        (offset) (value)
+   Magic        (0)    : 0x81
+   Opcode       (1)    : 0x00
+   Key length   (2,3)  : 0x0000
+   Extra length (4)    : 0x04
+   Data type    (5)    : 0x00
+   Status       (6,7)  : 0x0000
+   Total body   (8-11) : 0x00000009
+   Opaque       (12-15): 0x00000000
+   CAS          (16-23): 0x0000000000000001
+   Extras              :
+     Flags      (24-27): 0xdeadbeef
+   Key                 : None
+   Value        (28-32): The textual string "World"
  * @author liyanjun
  *
  */
@@ -35,8 +49,8 @@ public class BinaryGetCommand implements Command{
 			extras[1] = (byte) (flags <<16  &0xff);
 			extras[2] = (byte) (flags <<8   &0xff);
 			extras[3] = (byte) (flags       &0xff);
-			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GET,keystr.getBytes(),value,extras,1l);
-			writeResponse(conn,header,extras,keystr.getBytes(),value);
+			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GET,null,value,extras,1l);
+			writeResponse(conn,header,extras,null,value);
 		} else {
 			writeResponse(conn, BinaryProtocol.OPCODE_GET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
 		}
