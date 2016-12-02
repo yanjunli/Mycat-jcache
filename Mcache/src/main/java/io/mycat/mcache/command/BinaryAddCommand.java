@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Created by qd on 2016/11/29.
+ * @author  yanglinlin
  */
 public class BinaryAddCommand implements Command {
 

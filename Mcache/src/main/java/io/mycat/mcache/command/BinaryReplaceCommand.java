@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Created by qd on 2016/12/2.
+ * @author  yanglinlin
  */
 public class BinaryReplaceCommand implements Command {
 
