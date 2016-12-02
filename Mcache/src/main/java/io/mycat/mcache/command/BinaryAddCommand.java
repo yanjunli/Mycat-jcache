@@ -6,6 +6,8 @@ import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 import io.mycat.mcache.model.Protocol;
 import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,9 +17,11 @@ import java.nio.ByteBuffer;
  * @author  yanglinlin
  */
 public class BinaryAddCommand implements Command {
+    private static final Logger logger = LoggerFactory.getLogger(BinaryAddCommand.class);
 
     @Override
     public void execute(Connection conn) throws IOException {
+        logger.info("add command");
         ByteBuffer key = readkey(conn);
         byte[] ds = new byte[key.remaining()];
         key.get(ds);
