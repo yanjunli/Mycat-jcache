@@ -147,13 +147,16 @@ public class ReadWritePool {
             results[i] = null;
             if (tmpChunk != null) {
                 if (tmpChunk.getTimeout() > System.currentTimeMillis()) {
+                    tmpChunk.setReading(true);
                     ByteBuffer buffer = cache.get(key).getByteBuffer();
                     tmp = new byte[buffer.limit()];
                     buffer.get(tmp).flip();
                     results[i] = new Results(tmpChunk.getFlags(), tmpChunk.getByteSizes(), tmp);
+                    tmpChunk.setReading(false);
                 } else {
                     System.out.println("缓存过期");
-                    ManagerMemory.removeChunk(tmpChunk);
+                    if (tmpChunk.getReading() == 0)
+                        ManagerMemory.removeChunk(tmpChunk);
                 }
             }
             i++;
@@ -171,13 +174,16 @@ public class ReadWritePool {
             results[i] = null;
             if (tmpChunk != null) {
                 if (tmpChunk.getTimeout() > System.currentTimeMillis()) {
+                    tmpChunk.setReading(true);
                     ByteBuffer buffer = cache.get(key).getByteBuffer();
                     tmp = new byte[buffer.limit()];
                     buffer.get(tmp).flip();
                     results[i] = new ResultsWithCAS(tmpChunk.getFlags(), tmpChunk.getByteSizes(), tmp, tmpChunk.getCAS());
+                    tmpChunk.setReading(false);
                 } else {
                     System.out.println("缓存过期");
-                    ManagerMemory.removeChunk(tmpChunk);
+                    if (tmpChunk.getReading() == 0)
+                        ManagerMemory.removeChunk(tmpChunk);
                 }
             }
             i++;

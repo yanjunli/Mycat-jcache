@@ -1,6 +1,7 @@
 package mycat.leaderus.lzy.cachesys.memcache_v5;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by 行知道人 on 2016/11/29.
@@ -12,10 +13,22 @@ public class Chunk {
     private int byteSizes;
     private long CAS;
     private int flags;
+    private AtomicInteger reading = new AtomicInteger(0);
 
     Chunk(ByteBuffer slice) {
         this.buffer = slice;
         this.buffer.clear();
+    }
+
+    public int getReading() {
+        return reading.get();
+    }
+
+    public void setReading(boolean flag) {
+        if (flag)
+            reading.getAndIncrement();
+        else
+            reading.getAndDecrement();
     }
 
     public long getCAS() {

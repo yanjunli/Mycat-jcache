@@ -13,6 +13,7 @@ public class SlabClass {
     private static LinkedBlockingQueue<Slab> slabs = new LinkedBlockingQueue<Slab>();
     private static LinkedBlockingQueue<Slab> used = new LinkedBlockingQueue<Slab>();
     private static LinkedBlockingQueue<Slab> tmpUsed = new LinkedBlockingQueue<Slab>();
+
     static {
         for (int i = 0; i < Integer.MAX_VALUE / MemConfig.SLAB_SIZE; i++) {
             allMem.position(i * MemConfig.SLAB_SIZE);
@@ -20,11 +21,11 @@ public class SlabClass {
             slabs.add(new Slab(allMem.slice()));
         }
 
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
-                while(true){
-                    if(used.size()>0) {
+                while (true) {
+                    if (used.size() > 0) {
                         Slab tmp = null;
                         boolean flag = false;
                         try {
@@ -36,24 +37,26 @@ public class SlabClass {
                             long timeout = System.currentTimeMillis();
                             Chunk[] tmpChunks = tmp.getChunks();
                             if (tmpChunks != null)
-                            for (int i = 0; i < tmpChunks.length; i++) {
-                                if(!ManagerMemory.removeEmptyChunk(tmpChunks[i])) {
-                                    if (tmpChunks[i].getTimeout() > timeout) {
-                                        flag = true;
-                                        break;
-                                    }else{
-                                        ManagerMemory.removeUsedChunk(tmpChunks[i]);
-                                        ReadWritePool.remove(tmpChunks[i].getKey());
+                                for (int i = 0; i < tmpChunks.length; i++) {
+                                    if (!ManagerMemory.removeEmptyChunk(tmpChunks[i])) {
+                                        if (tmpChunks[i].getTimeout() > timeout) {
+                                            flag = true;
+                                            break;
+                                        } else {
+                                            if (tmpChunks[i].getReading() > 0)
+                                                break;
+                                            ManagerMemory.removeUsedChunk(tmpChunks[i]);
+                                            ReadWritePool.remove(tmpChunks[i].getKey());
+                                        }
                                     }
                                 }
-                            }
-                            if(!flag){
+                            if (!flag) {
                                 slabs.add(tmp);
-                            }else {
+                            } else {
                                 tmpUsed.add(tmp);
                             }
                         }
-                        if(tmpUsed.size()>0){
+                        if (tmpUsed.size() > 0) {
                             used.addAll(tmpUsed);
                             tmpUsed.clear();
                         }
@@ -64,16 +67,14 @@ public class SlabClass {
                         e.printStackTrace();
                     }
                 }
-
-
             }
         }.start();
 
     }
 
-    static Slab getSlab(){
+    static Slab getSlab() {
         Slab tmp = null;
-        if(slabs.size()>0) {
+        if (slabs.size() > 0) {
             try {
                 tmp = slabs.remove();
             } catch (NoSuchElementException e) {

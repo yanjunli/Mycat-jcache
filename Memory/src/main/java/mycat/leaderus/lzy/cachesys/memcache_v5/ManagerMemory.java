@@ -21,25 +21,27 @@ public class ManagerMemory {
             @Override
             public void run() {
                 LinkedBlockingQueue<Chunk> tmp = new  LinkedBlockingQueue<Chunk>();
-                Chunk tmpChunk = null;
+                Chunk tmpChunk;
                 while (true){
                     for (int i = 0; i < used.length ; i++) {
                         tmp.clear();
                         if (used[i].size() > 0) {
-                            try {
-                                tmpChunk = used[i].remove();
-                            } catch (NoSuchElementException e) {
-                                tmpChunk = null;
+                            while (true) {
+                                try {
+                                    tmpChunk = used[i].remove();
+                                } catch (NoSuchElementException e) {
+                                    break;
+                                }
+                                if (tmpChunk != null) {
+                                    if (tmpChunk.getTimeout() < System.currentTimeMillis() && tmpChunk.getReading() == 0)
+                                        empty[i].add(tmpChunk);
+                                    else
+                                        tmp.add(tmpChunk);
+                                }
                             }
-                            while (tmpChunk != null) {
-                                if (tmpChunk.getTimeout() < System.currentTimeMillis())
-                                    empty[i].add(tmpChunk);
-                                else
-                                    tmp.add(tmpChunk);
+                            if (tmp.size() > 0) {
+                                used[i].addAll(tmp);
                             }
-                        }
-                        if(tmp.size()>0){
-                            used[i].addAll(tmp);
                         }
                     }
                     try {
