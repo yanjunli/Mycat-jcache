@@ -6,7 +6,7 @@ import java.util.Properties;
 /**
  * Created by 行知道人 on 2016/11/29.
  */
-public class MemConfig {
+class MemConfig {
     public static final int SLAB_SIZE;
     public static final int TOTAL_MEMORY_SIZE;
     public static final int CHUNK_SIZES;

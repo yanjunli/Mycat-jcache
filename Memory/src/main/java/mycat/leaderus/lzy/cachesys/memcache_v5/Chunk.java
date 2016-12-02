@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by 行知道人 on 2016/11/29.
  */
-public class Chunk {
+class Chunk {
     private String key;
     private ByteBuffer buffer;
     private long timeout;
@@ -20,46 +20,50 @@ public class Chunk {
         this.buffer.clear();
     }
 
-    public int getReading() {
+    int getReading() {
         return reading.get();
     }
 
-    public void setReading(boolean flag) {
+    void setReading(boolean flag) {
         if (flag)
             reading.getAndIncrement();
         else
             reading.getAndDecrement();
     }
 
-    public long getCAS() {
+    void setReading() {
+        reading.set(0);
+    }
+
+    long getCAS() {
         return CAS;
     }
 
-    public void setCAS(long CAS) {
+    void setCAS(long CAS) {
         this.CAS = CAS;
     }
 
-    public int getByteSizes() {
+    int getByteSizes() {
         return byteSizes;
     }
 
-    public void setByteSizes(int byteSizes) {
+    void setByteSizes(int byteSizes) {
         this.byteSizes = byteSizes;
     }
 
-    public int getFlags() {
+    int getFlags() {
         return flags;
     }
 
-    public void setFlags(int flags) {
+    void setFlags(int flags) {
         this.flags = flags;
     }
 
-    public String getKey() {
+    String getKey() {
         return key;
     }
 
-    public void setKey(String key) {
+    void setKey(String key) {
         this.key = key;
     }
 

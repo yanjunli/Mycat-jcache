@@ -1,6 +1,7 @@
 package mycat.leaderus.lzy.cachesys.memcache_v5;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -12,10 +13,13 @@ public class ReadWritePool {
     private static AtomicLong CAS = new AtomicLong(0);
 
     public static int set(String key, int flags, int bytesSizes, long timeout, byte[] data) {
-        boolean b = cache.get(key) != null ? ManagerMemory.removeChunk(cache.get(key)) : false;
-        Chunk tmp = ManagerMemory.getChunk(bytesSizes);
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null)
+            ManagerMemory.removeChunk(tmp);
+        tmp = ManagerMemory.getChunk(bytesSizes);
         if (tmp == null) return ReturnStatus.ERROR.ordinal();
         tmp.setKey(key);
+        tmp.setReading();
         chunkInfo(flags, bytesSizes, timeout, data, tmp);
         cache.put(key, tmp);
         ManagerMemory.addUsed(tmp);
@@ -32,8 +36,7 @@ public class ReadWritePool {
 
 
     public static int add(String key, int flags, int bytesSizes, long timeout, byte[] data) {
-        boolean b = cache.get(key) != null ? true : false;
-        if (!b) {
+        if (cache.get(key) == null) {
             if (set(key, flags, bytesSizes, timeout, data) == ReturnStatus.ERROR.ordinal())
                 return ReturnStatus.NOT_STORED.ordinal();
             else
@@ -45,8 +48,8 @@ public class ReadWritePool {
     }
 
     public static int repalce(String key, int flags, int bytesSizes, long timeout, byte[] data) {
-        Chunk tmp = cache.get(key);
-        if (tmp != null) {
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null) {
             if (!(tmp.getByteBuffer().capacity() < bytesSizes)) {
                 if (ManagerMemory.removeUsedChunk(tmp)) {
                     chunkInfo(flags, bytesSizes, timeout, data, tmp);
@@ -65,10 +68,27 @@ public class ReadWritePool {
         return ReturnStatus.NOT_STORED.ordinal();
     }
 
+    public static int repalce_incr_decr(String key, int flags, int bytesSizes, long timeout, byte[] data) {
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null) {
+            if (!(tmp.getByteBuffer().capacity() < bytesSizes)) {
+                chunkInfo(flags, bytesSizes, timeout, data, tmp);
+                ManagerMemory.addUsed(tmp);
+                return ReturnStatus.STORED.ordinal();
+            } else {
+                ManagerMemory.removeChunk(tmp);
+                if (set(key, flags, bytesSizes, timeout, data) == ReturnStatus.ERROR.ordinal())
+                    return ReturnStatus.NOT_STORED.ordinal();
+                else
+                    return ReturnStatus.STORED.ordinal();
+            }
+        }
+        return ReturnStatus.NOT_STORED.ordinal();
+    }
+
     public static int append(String key, int flags, int bytesSizes, long timeout, byte[] data) {
-        boolean b = cache.get(key) != null ? true : false;
-        if (b) {
-            Chunk tmp = cache.get(key);
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null) {
             if (ManagerMemory.removeUsedChunk(tmp)) {
                 byte[] tmpbytes = new byte[tmp.getByteSizes()];
                 tmp.getByteBuffer().get(tmpbytes).flip();
@@ -83,9 +103,8 @@ public class ReadWritePool {
     }
 
     public static int prepend(String key, int flags, int bytesSizes, long timeout, byte[] data) {
-        boolean b = cache.get(key) != null ? true : false;
-        if (b) {
-            Chunk tmp = cache.get(key);
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null) {
             if (ManagerMemory.removeUsedChunk(tmp)) {
                 byte[] tmpbytes = new byte[tmp.getByteSizes()];
                 tmp.getByteBuffer().get(tmpbytes).flip();
@@ -114,9 +133,8 @@ public class ReadWritePool {
     }
 
     public static int CAS(String key, int flags, int bytesSizes, long timeout, byte[] data, long CASInput) {
-        boolean b = cache.get(key) != null ? true : false;
-        if (b) {
-            Chunk tmp = cache.get(key);
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null) {
             if (ManagerMemory.removeUsedChunk(tmp)) {
                 if (tmp.getCAS() == CASInput) {
                     if (!(tmp.getByteBuffer().capacity() < bytesSizes)) {
@@ -197,6 +215,47 @@ public class ReadWritePool {
             if (ManagerMemory.removeChunk(tmp))
                 return ReturnStatus.DELETED.ordinal();
             else
+                return ReturnStatus.ERROR.ordinal();
+        } else {
+            return ReturnStatus.NOT_FOUND.ordinal();
+        }
+    }
+
+    public static int flush_all(long time) {
+        if (time > 100)
+            try {
+                Thread.sleep(time);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        cache.clear();
+        ManagerMemory.removeAllChunk();
+        return ReturnStatus.OK.ordinal();
+    }
+
+    public static int incr(String key, int increment_value) {
+        return incr_decr(key, increment_value, true);
+    }
+
+    public static int decr(String key, int decrement_value) {
+        return incr_decr(key, decrement_value, false);
+    }
+
+    private static int incr_decr(String key, int value, boolean flag) {
+        Chunk tmp;
+        if ((tmp = cache.get(key)) != null) {
+            if (ManagerMemory.removeUsedChunk(tmp)) {
+                byte[] tmpValue = new byte[tmp.getByteSizes()];
+                tmp.getByteBuffer().get(tmpValue).flip();
+                long val;
+                try {
+                    val = Integer.parseInt(new String(tmpValue)) & 0xFFFFFFF;
+                } catch (NumberFormatException e) {
+                    return ReturnStatus.CLIENT_ERROR.ordinal();
+                }
+                tmpValue = flag ? Long.toString(val + value).getBytes(Charset.forName("UTF-8")) : Long.toString(val - value).getBytes(Charset.forName("UTF-8"));
+                return repalce_incr_decr(tmp.getKey(), tmp.getFlags(), tmpValue.length, tmp.getTimeout(), tmpValue);
+            } else
                 return ReturnStatus.ERROR.ordinal();
         } else {
             return ReturnStatus.NOT_FOUND.ordinal();

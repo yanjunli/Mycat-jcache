@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by 行知道人 on 2016/11/29.
  */
-public class SlabClass {
+class SlabClass {
 
     private static ByteBuffer allMem = ByteBuffer.allocateDirect(MemConfig.TOTAL_MEMORY_SIZE);
     private static LinkedBlockingQueue<Slab> slabs = new LinkedBlockingQueue<Slab>();
@@ -26,7 +26,7 @@ public class SlabClass {
             public void run() {
                 while (true) {
                     if (used.size() > 0) {
-                        Slab tmp = null;
+                        Slab tmp;
                         boolean flag = false;
                         try {
                             tmp = used.remove();

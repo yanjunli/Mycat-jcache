@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by 行知道人 on 2016/11/29.
  */
-public class ManagerMemory {
+class ManagerMemory {
     private static LinkedBlockingQueue<Chunk>[] used = new LinkedBlockingQueue[MemConfig.SLAB_SIZE / MemConfig.CHUNK_SIZES];
     private static LinkedBlockingQueue<Chunk>[] empty = new LinkedBlockingQueue[MemConfig.SLAB_SIZE / MemConfig.CHUNK_SIZES];
 
@@ -91,5 +91,11 @@ public class ManagerMemory {
     static boolean removeUsedChunk(Chunk e){
         int index = e.getByteBuffer().capacity() / MemConfig.CHUNK_SIZES - 1;
         return used[index].remove(e);
+    }
+
+    public static void removeAllChunk() {
+        for (int i = 0; i < used.length; i++) {
+            empty[i].addAll(used[i]);
+        }
     }
 }

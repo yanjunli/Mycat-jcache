@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by 行知道人 on 2016/11/29.
  */
-public class Slab {
+class Slab {
     private Chunk[] chunks;
     private ByteBuffer allChunks;
     Slab(ByteBuffer slice) {
