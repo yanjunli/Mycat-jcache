@@ -8,6 +8,9 @@ import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * getk 命令 
    Field        (offset) (value)
@@ -29,6 +32,8 @@ import java.nio.ByteBuffer;
  */
 public class BinaryGetKCommand implements Command{
 	
+	private static final Logger logger = LoggerFactory.getLogger(BinaryGetKCommand.class);
+	
 	
 	@Override
 	public void execute(Connection conn) throws IOException {
@@ -40,7 +45,7 @@ public class BinaryGetKCommand implements Command{
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
 			ByteBuffer key = readkey(conn);
 			String keystr = new String(cs.decode(key).array());
-			System.out.println("执行getk 命令   key: "+keystr);
+			logger.info("execute command getk key {}",keystr);
 			byte[] value = "This is a test String".getBytes("UTF-8");
 			int flags = 0x00000020;
 			byte[] extras = new byte[4];

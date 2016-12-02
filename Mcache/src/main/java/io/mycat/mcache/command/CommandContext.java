@@ -21,7 +21,7 @@ public class CommandContext {
 		commandMap.put(CommandType.getk, new BinaryGetKCommand());
 		commandMap.put(CommandType.getkq, new BinaryGetKQCommand());
 		commandMap.put(CommandType.getq, new BinaryGetQCommand());
-
+		commandMap.put(CommandType.noop, new BinaryNoopCommand());
 	}
 	
 	private CommandContext(){}

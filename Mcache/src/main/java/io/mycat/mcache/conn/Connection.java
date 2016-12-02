@@ -101,9 +101,11 @@ public class Connection implements Closeable,Runnable{
 		try {
 			if (selectionKey.isValid()) {
 				if (selectionKey.isReadable()) {
+					logger.debug("select-key read");
 					asynRead();
 				}
 				if (selectionKey.isWritable()) {
+					logger.debug("select-key writ");
 					asynWrite();
 				}
 			} else {
@@ -137,6 +139,7 @@ public class Connection implements Closeable,Runnable{
 //	            if (readBuffer.isFull()) {
 //	                // @todo extends
 //	            }
+	        	close("client closed");
 	            break;
 	        }
 	        case -1: {
@@ -166,6 +169,7 @@ public class Connection implements Closeable,Runnable{
 		if (noMoreData) {
 		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) != 0)) {
 		    	writeBuffer.clear();
+		    	readBuffer.clear();
 		        disableWrite();
 		    }
 
