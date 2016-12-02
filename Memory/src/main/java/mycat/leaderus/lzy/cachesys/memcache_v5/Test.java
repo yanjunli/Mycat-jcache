@@ -54,7 +54,7 @@ public class Test {
         System.out.println("初始化："+(System.currentTimeMillis()-l)+"ms");
         l=System.currentTimeMillis();
         for (int i = 0; i < tmp; i++) {
-            ReadWritePool.put(tmpUuid[i].toString(),tmpStrings[i],System.currentTimeMillis()+20000);
+            // ReadWritePool.set(tmpUuid[i].toString(), tmpStrings[i], System.currentTimeMillis() + 20000);
         }
 
         System.out.println("写入花费："+(System.currentTimeMillis()-l)+"ms");
@@ -63,7 +63,7 @@ public class Test {
         byte[][] tmpStringsRes=new byte[tmp][];
         l=System.currentTimeMillis();
         for (int i = 0; i < tmp; i++) {
-            tmpStringsRes[i]=ReadWritePool.get(tmpUuid[rand[i]]);
+            //    tmpStringsRes[i]=ReadWritePool.get(tmpUuid[rand[i]]);
         }
         System.out.println("随机读取花费"+(System.currentTimeMillis()-l)+"ms");
 //        for (int i = 0; i < tmp; i++) {

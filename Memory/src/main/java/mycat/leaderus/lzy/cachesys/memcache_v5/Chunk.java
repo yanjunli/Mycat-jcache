@@ -9,10 +9,37 @@ public class Chunk {
     private String key;
     private ByteBuffer buffer;
     private long timeout;
+    private int byteSizes;
+    private long CAS;
+    private int flags;
 
     Chunk(ByteBuffer slice) {
         this.buffer = slice;
         this.buffer.clear();
+    }
+
+    public long getCAS() {
+        return CAS;
+    }
+
+    public void setCAS(long CAS) {
+        this.CAS = CAS;
+    }
+
+    public int getByteSizes() {
+        return byteSizes;
+    }
+
+    public void setByteSizes(int byteSizes) {
+        this.byteSizes = byteSizes;
+    }
+
+    public int getFlags() {
+        return flags;
+    }
+
+    public void setFlags(int flags) {
+        this.flags = flags;
     }
 
     public String getKey() {

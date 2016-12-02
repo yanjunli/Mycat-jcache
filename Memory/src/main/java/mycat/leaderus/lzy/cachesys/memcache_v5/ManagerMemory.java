@@ -54,7 +54,7 @@ public class ManagerMemory {
 
     static Chunk getChunk(int size){
         int index = (size - 1) / MemConfig.CHUNK_SIZES;
-        Chunk tmpChunk = null;
+        Chunk tmpChunk;
         if(empty[index].size()==0) {
             Slab tmp = SlabClass.getSlab();
             if (tmp != null)
