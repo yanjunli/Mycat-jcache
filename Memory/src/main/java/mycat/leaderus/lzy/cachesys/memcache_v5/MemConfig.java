@@ -5,7 +5,7 @@ package mycat.leaderus.lzy.cachesys.memcache_v5;
  */
 public class MemConfig {
     public static final int SLAB_SIZE = 1024*1024;
-
+    public static final int TOTAL_MOMORY_SIZE = 100 * SLAB_SIZE;
     public static final int CHUNK_SIZES = 256;
 
 }

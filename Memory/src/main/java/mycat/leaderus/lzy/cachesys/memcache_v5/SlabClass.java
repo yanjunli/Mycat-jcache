@@ -9,7 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class SlabClass {
 
-    private static ByteBuffer allMem = ByteBuffer.allocateDirect(Integer.MAX_VALUE);
+    private static ByteBuffer allMem = ByteBuffer.allocateDirect(MemConfig.TOTAL_MOMORY_SIZE);
     private static LinkedBlockingQueue<Slab> slabs = new LinkedBlockingQueue<Slab>();
     private static LinkedBlockingQueue<Slab> used = new LinkedBlockingQueue<Slab>();
     private static LinkedBlockingQueue<Slab> tmpUsed = new LinkedBlockingQueue<Slab>();
