@@ -18,6 +18,7 @@ class Chunk {
     Chunk(ByteBuffer slice) {
         this.buffer = slice;
         this.buffer.clear();
+        timeout = Long.MAX_VALUE;
     }
 
     int getReading() {

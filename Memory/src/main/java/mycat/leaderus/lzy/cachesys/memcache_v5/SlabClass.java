@@ -43,11 +43,6 @@ class SlabClass {
                                         if (tmpChunks[i].getTimeout() > timeout) {
                                             flag = true;
                                             break;
-                                        } else {
-                                            if (tmpChunks[i].getReading() > 0)
-                                                break;
-                                            ManagerMemory.removeUsedChunk(tmpChunks[i]);
-                                            ReadWritePool.remove(tmpChunks[i].getKey());
                                         }
                                     }
                                 }

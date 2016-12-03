@@ -65,9 +65,19 @@ public class AppTest {
 	}
 
     @Test
-    public void testReadWritePool() {
-        ReadWritePool.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        System.out.println(ReadWritePool.get(new String[]{"123"}));
+    public void testReadWritePool() throws InterruptedException {
+        ReadWritePool.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 1000, "123".getBytes());
+        ReadWritePool.set("1234", 0, "1234".getBytes().length, System.currentTimeMillis() + 100, "123".getBytes());
+        ReadWritePool.set("1235", 0, "1235".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        ReadWritePool.set("1236", 0, "1236".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        ReadWritePool.set("1237", 0, "1237".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
+        System.out.println(new String(ReadWritePool.get(new String[]{"1235"})[0].values));
+        System.out.println(new String(ReadWritePool.get(new String[]{"1236"})[0].values));
+        System.out.println(new String(ReadWritePool.get(new String[]{"1237"})[0].values));
+        System.out.println(new String(ReadWritePool.get(new String[]{"1234"})[0].values));
+        Thread.sleep(1000);
+        System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
     }
 
     @Test
