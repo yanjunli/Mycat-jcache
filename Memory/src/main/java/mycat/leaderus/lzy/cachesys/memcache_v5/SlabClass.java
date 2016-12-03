@@ -15,10 +15,11 @@ class SlabClass {
     private static LinkedBlockingQueue<Slab> tmpUsed = new LinkedBlockingQueue<Slab>();
 
     static {
-        for (int i = 0; i < Integer.MAX_VALUE / MemConfig.SLAB_SIZE; i++) {
+        for (int i = 0; i < MemConfig.TOTAL_MEMORY_SIZE / MemConfig.SLAB_SIZE; i++) {
             allMem.position(i * MemConfig.SLAB_SIZE);
             allMem.limit((i + 1) * MemConfig.SLAB_SIZE);
             slabs.add(new Slab(allMem.slice()));
+
         }
 
         new Thread() {

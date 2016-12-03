@@ -1,12 +1,12 @@
 package io.mycat.mcache;
 
-import java.io.IOException;
-
+import com.whalin.MemCached.MemCachedClient;
+import com.whalin.MemCached.SockIOPool;
+import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.whalin.MemCached.MemCachedClient;
-import com.whalin.MemCached.SockIOPool;
+import java.io.IOException;
 
 /**
  * Unit test for simple App.
@@ -63,6 +63,12 @@ public class AppTest {
         String bar = mcc.get("foo").toString();
         System.out.println(">>> " + bar);
 	}
+
+    @Test
+    public void testReadWritePool() {
+        ReadWritePool.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        System.out.println(ReadWritePool.get(new String[]{"123"}));
+    }
 
     @Test
     public void testAddCommand(){
