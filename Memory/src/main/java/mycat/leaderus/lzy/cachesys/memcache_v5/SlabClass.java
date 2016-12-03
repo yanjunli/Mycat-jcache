@@ -25,37 +25,35 @@ class SlabClass {
         new Thread() {
             @Override
             public void run() {
+                LinkedBlockingQueue<Chunk> tmpEmpChunks = new LinkedBlockingQueue<>();
+                Slab tmp;
                 while (true) {
-                    if (used.size() > 0) {
-                        Slab tmp;
-                        boolean flag = false;
+                    if (used.size() > 10) {
                         try {
                             tmp = used.remove();
                         } catch (NoSuchElementException e) {
                             tmp = null;
                         }
-                        while (tmp != null) {
-                            long timeout = System.currentTimeMillis();
+                        if (tmp != null) {
                             Chunk[] tmpChunks = tmp.getChunks();
                             if (tmpChunks != null)
                                 for (int i = 0; i < tmpChunks.length; i++) {
-                                    if (!ManagerMemory.removeEmptyChunk(tmpChunks[i])) {
-                                        if (tmpChunks[i].getTimeout() > timeout) {
-                                            flag = true;
-                                            break;
-                                        }
+                                    if (ManagerMemory.removeEmptyChunk(tmpChunks[i])) {
+                                        tmpEmpChunks.add(tmpChunks[i]);
                                     }
                                 }
-                            if (!flag) {
+                            if (tmpEmpChunks.size() == tmpChunks.length) {
                                 slabs.add(tmp);
                             } else {
-                                tmpUsed.add(tmp);
+                                ManagerMemory.allEmptyChunks(tmpEmpChunks, tmpChunks[0].getByteBuffer().capacity() / MemConfig.CHUNK_SIZES - 1);
+                                used.add(tmp);
                             }
+                            tmpEmpChunks.clear();
                         }
-                        if (tmpUsed.size() > 0) {
-                            used.addAll(tmpUsed);
-                            tmpUsed.clear();
-                        }
+                    }
+                    if (tmpUsed.size() > 0) {
+                        used.addAll(tmpUsed);
+                        tmpUsed.clear();
                     }
                     try {
                         sleep(10000);

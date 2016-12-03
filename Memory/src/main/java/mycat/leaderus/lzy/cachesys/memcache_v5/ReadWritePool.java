@@ -12,6 +12,16 @@ public class ReadWritePool {
     private static ConcurrentHashMap<String, Chunk> cache = new ConcurrentHashMap();
     private static AtomicLong CAS = new AtomicLong(0);
 
+    /**
+     * 对应set命令 注意timeout 传入为 当前时间加过期时间
+     *
+     * @param key
+     * @param flags
+     * @param bytesSizes
+     * @param timeout
+     * @param data
+     * @return
+     */
     public static int set(String key, int flags, int bytesSizes, long timeout, byte[] data) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null)
@@ -35,6 +45,16 @@ public class ReadWritePool {
     }
 
 
+    /**
+     * 对应add命令 注意timeout 传入为 当前时间加过期时间
+     * @param key
+     * @param flags
+     * @param bytesSizes
+     * @param timeout
+     * @param data
+     * @return
+     */
+
     public static int add(String key, int flags, int bytesSizes, long timeout, byte[] data) {
         if (cache.get(key) == null) {
             if (set(key, flags, bytesSizes, timeout, data) == ReturnStatus.ERROR.ordinal())
@@ -47,7 +67,18 @@ public class ReadWritePool {
 
     }
 
-    public static int repalce(String key, int flags, int bytesSizes, long timeout, byte[] data) {
+
+    /**
+     * 对应replace命令 注意timeout 传入为 当前时间加过期时间
+     *
+     * @param key
+     * @param flags
+     * @param bytesSizes
+     * @param timeout
+     * @param data
+     * @return
+     */
+    public static int replace(String key, int flags, int bytesSizes, long timeout, byte[] data) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null) {
             if (!(tmp.getByteBuffer().capacity() < bytesSizes)) {
@@ -68,7 +99,7 @@ public class ReadWritePool {
         return ReturnStatus.NOT_STORED.ordinal();
     }
 
-    public static int repalce_incr_decr(String key, int flags, int bytesSizes, long timeout, byte[] data) {
+    private static int replace_incr_decr(String key, int flags, int bytesSizes, long timeout, byte[] data) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null) {
             if (!(tmp.getByteBuffer().capacity() < bytesSizes)) {
@@ -86,6 +117,16 @@ public class ReadWritePool {
         return ReturnStatus.NOT_STORED.ordinal();
     }
 
+
+    /**
+     * 对应append命令 注意timeout 传入为 当前时间加过期时间
+     * @param key
+     * @param flags
+     * @param bytesSizes
+     * @param timeout
+     * @param data
+     * @return
+     */
     public static int append(String key, int flags, int bytesSizes, long timeout, byte[] data) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null) {
@@ -102,6 +143,16 @@ public class ReadWritePool {
         return ReturnStatus.NOT_STORED.ordinal();
     }
 
+
+    /**
+     * 对应prepend命令 注意timeout 传入为 当前时间加过期时间
+     * @param key
+     * @param flags
+     * @param bytesSizes
+     * @param timeout
+     * @param data
+     * @return
+     */
     public static int prepend(String key, int flags, int bytesSizes, long timeout, byte[] data) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null) {
@@ -132,6 +183,17 @@ public class ReadWritePool {
         return false;
     }
 
+
+    /**
+     * 对应CAS命令 注意timeout 传入为 当前时间加过期时间
+     * @param key
+     * @param flags
+     * @param bytesSizes
+     * @param timeout
+     * @param data
+     * @param CASInput
+     * @return
+     */
     public static int CAS(String key, int flags, int bytesSizes, long timeout, byte[] data, long CASInput) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null) {
@@ -155,6 +217,12 @@ public class ReadWritePool {
         }
     }
 
+
+    /**
+     * 对应get命令 返回空为 没有查到
+     * @param keys
+     * @return
+     */
     public static Results[] get(String[] keys) {
         byte[] tmp;
         Results[] results = new Results[keys.length];
@@ -182,6 +250,12 @@ public class ReadWritePool {
         return results;
     }
 
+
+    /**
+     * 对应gets命令 返回空为 没有查到
+     * @param keys
+     * @return
+     */
     public static ResultsWithCAS[] gets(String[] keys) {
         byte[] tmp;
         ResultsWithCAS[] results = new ResultsWithCAS[keys.length];
@@ -209,6 +283,12 @@ public class ReadWritePool {
         return results;
     }
 
+
+    /**
+     * delete命令
+     * @param key
+     * @return
+     */
     public static int delete(String key) {
         Chunk tmp;
         if ((tmp = cache.get(key)) != null) {
@@ -233,10 +313,22 @@ public class ReadWritePool {
         return ReturnStatus.OK.ordinal();
     }
 
+    /**
+     * incr
+     * @param key
+     * @param increment_value
+     * @return
+     */
     public static int incr(String key, int increment_value) {
         return incr_decr(key, increment_value, true);
     }
 
+    /**
+     * decr
+     * @param key
+     * @param decrement_value
+     * @return
+     */
     public static int decr(String key, int decrement_value) {
         return incr_decr(key, decrement_value, false);
     }
@@ -254,7 +346,7 @@ public class ReadWritePool {
                     return ReturnStatus.CLIENT_ERROR.ordinal();
                 }
                 tmpValue = flag ? Long.toString(val + value).getBytes(Charset.forName("UTF-8")) : Long.toString(val - value).getBytes(Charset.forName("UTF-8"));
-                return repalce_incr_decr(tmp.getKey(), tmp.getFlags(), tmpValue.length, tmp.getTimeout(), tmpValue);
+                return replace_incr_decr(tmp.getKey(), tmp.getFlags(), tmpValue.length, tmp.getTimeout(), tmpValue);
             } else
                 return ReturnStatus.ERROR.ordinal();
         } else {

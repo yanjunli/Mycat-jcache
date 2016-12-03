@@ -47,7 +47,7 @@ public class BinaryReplaceCommand implements Command {
         System.out.println("执行replace 命令   key: "+new String(cs.decode (key).array()));
         System.out.println("执行replace 命令   value: "+new String(cs.decode (value).array()));
 
-        int result = ReadWritePool.repalce(keys,flags.getInt(),data.length,expiry.getLong(),data);
+        int result = ReadWritePool.replace(keys,flags.getInt(),data.length,expiry.getLong(),data);
         System.out.println("replace command result : "+result);
         writeResponse(conn,BinaryProtocol.OPCODE_ADD,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus(),1l);
     }

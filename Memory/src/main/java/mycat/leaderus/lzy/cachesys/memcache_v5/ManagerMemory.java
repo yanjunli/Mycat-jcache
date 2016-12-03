@@ -98,4 +98,8 @@ class ManagerMemory {
             empty[i].addAll(used[i]);
         }
     }
+
+    static void allEmptyChunks(LinkedBlockingQueue<Chunk> e, int index) {
+        empty[index].addAll(e);
+    }
 }

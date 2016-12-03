@@ -77,7 +77,7 @@ public class AppTest {
         System.out.println(new String(ReadWritePool.get(new String[]{"1237"})[0].values));
         System.out.println(new String(ReadWritePool.get(new String[]{"1234"})[0].values));
         Thread.sleep(1000);
-        System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
+        //System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
     }
 
     @Test
