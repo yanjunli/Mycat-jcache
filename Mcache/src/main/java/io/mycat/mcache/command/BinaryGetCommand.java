@@ -3,6 +3,9 @@ package io.mycat.mcache.command;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.mycat.mcache.McacheGlobalConfig;
 import io.mycat.mcache.command.binary.ProtocolCommand;
 import io.mycat.mcache.command.binary.ProtocolResponseStatus;
@@ -31,6 +34,8 @@ import io.mycat.mcache.conn.handler.BinaryResponseHeader;
  */
 public class BinaryGetCommand implements Command{
 	
+	private static final Logger logger = LoggerFactory.getLogger(BinaryGetCommand.class);
+	
 	@Override
 	public void execute(Connection conn) throws IOException {
 		
@@ -41,7 +46,7 @@ public class BinaryGetCommand implements Command{
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
 			ByteBuffer key = readkey(conn);
 			String keystr = new String(cs.decode(key).array());
-			System.out.println("执行get 命令   key: "+keystr);
+			logger.info("execute command get key {}",keystr);
 			byte[] value = "This is a test String".getBytes("UTF-8");
 			int flags = 0x00000020;
 			byte[] extras = new byte[4];

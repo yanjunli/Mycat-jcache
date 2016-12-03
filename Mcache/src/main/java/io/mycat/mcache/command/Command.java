@@ -49,10 +49,10 @@ public interface Command {
 	public default ByteBuffer readValue(Connection conn) throws IOException{
 		BinaryRequestHeader header = conn.getBinaryRequestHeader();
 		ByteBuffer buffer = conn.getReadDataBuffer();
-		int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen();
+		int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen() ;
 		int valuestart = keystart + header.getKeylen();
 		int totalBodylength = header.getBodylen();
-		int valuelength = totalBodylength - header.getExtlen() - header.getKeylen();
+		int valuelength = totalBodylength - header.getExtlen() - header.getKeylen() ;
 		return getBytes(buffer,valuestart, valuelength);
 	}
 	
@@ -78,7 +78,7 @@ public interface Command {
 	 */
 	public default ByteBuffer getBytes(ByteBuffer mapBuf,int index,int length) throws IOException {
 		int oldPos=mapBuf.position();
-		mapBuf.position(index);
+		mapBuf.position(index+ mapBuf.position());
 		ByteBuffer copyBuf=mapBuf.slice();
 		copyBuf.limit(length);
 		mapBuf.position(oldPos);
@@ -100,7 +100,7 @@ public interface Command {
 		BinaryResponseHeader header = new BinaryResponseHeader();
 		
 		header.setMagic(BinaryProtocol.MAGIC_RESP);
-		header.setOpcode(BinaryProtocol.OPCODE_GET);
+		header.setOpcode(opcode);
 		header.setKeylen(key!=null?(short)key.length:0);
 		header.setExtlen((byte)extras.length);
 		header.setDatatype(BinaryProtocol.PROTOCOL_BINARY_RAW_BYTES);
@@ -155,12 +155,13 @@ public interface Command {
 	}
 	
 	/**
-	 * 待优化
+	 * 待优化  TODO 这里每次都clear writeBuffer.可以优化为剩余空间不足时，再做优化。
 	 *  response no body
 	 * @param conn
 	 */
 	public default void writeResponse(Connection conn,BinaryResponseHeader header,byte[] extras,byte[] key,byte[] value){
 		ByteBuffer write = conn.getWriteBuffer();
+		write.clear();  
 		write.put(header.getMagic());
 		write.put(header.getOpcode());
 		write.putShort(header.getKeylen());
