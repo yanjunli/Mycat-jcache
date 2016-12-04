@@ -28,7 +28,6 @@ public class IOHandler{
 	public void doReadHandler(Connection conn) throws IOException{
 		logger.debug("handleReadEvent(): {}", this);
         final ByteBuffer buffer = conn.getReadDataBuffer();
-        Command command = null;
 
         if(Protocol.negotiating.equals(McacheGlobalConfig.prot)){
         	byte magic = buffer.get(0);
@@ -37,75 +36,92 @@ public class IOHandler{
         	}else{
         		conn.setProtocol(Protocol.ascii);
         	}
-        }
-        
-        /**
-         * 如果是二进制协议
-         */
-        if(Protocol.binary.equals(conn.getProtocol())){  	
-        	int offset = buffer.position();
-        	int limit  = buffer.limit();
-        	while(offset<limit){
-                // 读取到了包头和长度
-        		// 是否讀完一個報文
-        		if(!validateHeader(offset, limit)) {
-        			logger.debug("C#{}B#{} validate protocol packet header: too short, ready to handle next the read event offset{},limit{}",
-        				conn.getId(), buffer.hashCode(),offset,limit);
-        			return; 
-        		}
-        		int length = getPacketLength(buffer,offset);
-        		if((length + offset)> limit) {
-        			logger.debug("C#{}B#{} nNot a whole packet: required length = {} bytes, cur total length = {} bytes, "
-        			 	+ "ready to handle the next read event", conn.getId(), buffer.hashCode(), length, limit);
-        			return;
-        		}
-//   fix  bug  some command only has header!!
-//        		if(length == BinaryProtocol.memcache_packetHeaderSize){
-//        			// @todo handle empty packet
-//        			return;
-//        		}
-        		/**
-        		 * 解析 request header
-        		 */
-        		readRequestHeader(conn,buffer,offset);
-        		
-        		int keylen = conn.getBinaryRequestHeader().getKeylen();
-        		int bodylen = conn.getBinaryRequestHeader().getBodylen();
-        		int extlen  = conn.getBinaryRequestHeader().getExtlen();
-        	    if (keylen > bodylen || keylen + extlen > bodylen) {
-        	        Command.writeResponseError(conn, 
-        	        						   conn.getBinaryRequestHeader().getOpcode(),
-        	        						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND.getStatus());
-        	        return;
-        	    }
-        	    
-//              TODO    	    
-//        	    if (settings.sasl && !authenticated(c)) {
-//        	        write_bin_error(c, PROTOCOL_BINARY_RESPONSE_AUTH_ERROR, NULL, 0);
-//        	        c->write_and_go = conn_closing;
-//        	        return;
-//        	    }
-        	    if(keylen > McacheGlobalConfig.KEY_MAX_LENGTH) {
-        	    	Command.writeResponseError(conn, 
-    						   conn.getBinaryRequestHeader().getOpcode(),
-    						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus());
-        			return;
-        	    }
-        		//执行命令
-        		command = CommandContext.getCommand(conn.getBinaryRequestHeader().getOpcode());
-        		
-        		if(command==null){
-        			Command.writeResponseError(conn, 
-    						   conn.getBinaryRequestHeader().getOpcode(),
-    						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND.getStatus());
-        		}
-        		command.execute(conn);
-        		offset += length;
-        		buffer.position(offset);
-        	}
+        } 
+        if(Protocol.binary.equals(conn.getProtocol())){ // 如果是二进制协议
+        	binaryHandler(conn,buffer);
         }else{  //如果是文本协议
-        	
+        	asciiHandler(conn,buffer);
         }
+	}
+	
+	/**
+	 * 文本协议处理
+	 * @param conn
+	 * @param buffer
+	 * @throws IOException
+	 */
+	public void asciiHandler(Connection conn,ByteBuffer readbuffer) throws IOException{
+		Command command = null;
+	}
+	
+	/**
+	 * 二进制协议处理
+	 * @param conn
+	 * @param buffer
+	 * @throws IOException
+	 */
+	public void binaryHandler(Connection conn,ByteBuffer readbuffer) throws IOException{
+		Command command = null;
+		int offset = readbuffer.position();
+    	int limit  = readbuffer.limit();
+    	while(offset<limit){
+            // 读取到了包头和长度
+    		// 是否讀完一個報文
+    		if(!validateHeader(offset, limit)) {
+    			logger.debug("C#{}B#{} validate protocol packet header: too short, ready to handle next the read event offset{},limit{}",
+    				conn.getId(), readbuffer.hashCode(),offset,limit);
+    			return; 
+    		}
+    		int length = getPacketLength(readbuffer,offset);
+    		if((length + offset)> limit) {
+    			logger.debug("C#{}B#{} nNot a whole packet: required length = {} bytes, cur total length = {} bytes, "
+    			 	+ "ready to handle the next read event", conn.getId(), readbuffer.hashCode(), length, limit);
+    			return;
+    		}
+//fix  bug  some command only has header!!
+//    		if(length == BinaryProtocol.memcache_packetHeaderSize){
+//    			// @todo handle empty packet
+//    			return;
+//    		}
+    		/**
+    		 * 解析 request header
+    		 */
+    		readRequestHeader(conn,readbuffer,offset);
+    		
+    		int keylen = conn.getBinaryRequestHeader().getKeylen();
+    		int bodylen = conn.getBinaryRequestHeader().getBodylen();
+    		int extlen  = conn.getBinaryRequestHeader().getExtlen();
+    	    if (keylen > bodylen || keylen + extlen > bodylen) {
+    	        Command.writeResponseError(conn, 
+    	        						   conn.getBinaryRequestHeader().getOpcode(),
+    	        						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND.getStatus());
+    	        return;
+    	    }
+    	    
+//          TODO    	    
+//    	    if (settings.sasl && !authenticated(c)) {
+//    	        write_bin_error(c, PROTOCOL_BINARY_RESPONSE_AUTH_ERROR, NULL, 0);
+//    	        c->write_and_go = conn_closing;
+//    	        return;
+//    	    }
+    	    if(keylen > McacheGlobalConfig.KEY_MAX_LENGTH) {
+    	    	Command.writeResponseError(conn, 
+						   conn.getBinaryRequestHeader().getOpcode(),
+						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus());
+    			return;
+    	    }
+    		//执行命令
+    		command = CommandContext.getCommand(conn.getBinaryRequestHeader().getOpcode());
+    		
+    		if(command==null){
+    			Command.writeResponseError(conn, 
+						   conn.getBinaryRequestHeader().getOpcode(),
+						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND.getStatus());
+    		}
+    		command.execute(conn);
+    		offset += length;
+    		readbuffer.position(offset);
+    	}
 	}
 	
 	/**
