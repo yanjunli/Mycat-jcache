@@ -7,6 +7,8 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ public class Connection implements Closeable,Runnable{
 	protected final SocketChannel channel;
 	private ByteBuffer writeBuffer;  //读缓冲区
 	protected ByteBuffer readBuffer; //写缓冲区
+	private LinkedList<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
+	private AtomicBoolean writingFlag = new AtomicBoolean(false);
 	private long id;
 	private boolean isClosed;    
     private IOHandler ioHandler;  //io 协议处理类
@@ -89,7 +93,7 @@ public class Connection implements Closeable,Runnable{
 	public void register(Selector selector)  throws IOException {
 		selectionKey = channel.register(selector, SelectionKey.OP_READ);
         readBuffer = ByteBuffer.allocate(1024); // 这里可以修改成从内存模块获取
-        writeBuffer=ByteBuffer.allocate(1024);
+//        writeBuffer=ByteBuffer.allocate(1024);
         ioHandler = new IOHandler();
 		// 绑定会话
 		selectionKey.attach(this);  //会在 reactor 中被调用
@@ -160,23 +164,49 @@ public class Connection implements Closeable,Runnable{
 	 * @throws IOException
 	 */
 	public void asynWrite() throws IOException{
-		int writed = channel.write(writeBuffer);
 		
-		logger.warn("writed data length:{}",writed);
-		final int remains = writeBuffer.remaining();
-		boolean noMoreData = remains==0;
-		logger.warn("nodata :{}",noMoreData);
-		if (noMoreData) {
-		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) != 0)) {
-		    	writeBuffer.clear();
-		    	readBuffer.clear();
-		        disableWrite();
-		    }
-
+		while (!writingFlag.compareAndSet(false, true)) {
+			// wait until release
+		}
+		try {
+			ByteBuffer theWriteBuf = writeBuffer;
+			if (theWriteBuf==null && writeQueue.isEmpty()) {
+				disableWrite();
+			} else if(theWriteBuf!=null){
+				writeQueue.add(writeBuffer);
+				writeToChannel(theWriteBuf);
+			}else if(!writeQueue.isEmpty()){
+				theWriteBuf = writeQueue.removeFirst();
+				theWriteBuf.flip();
+				writeToChannel(theWriteBuf);
+			}
+		} finally {
+			// release
+			writingFlag.lazySet(false);
+		}
+	}
+	
+	private void writeToChannel(ByteBuffer curBuffer) throws IOException {
+		int writed = channel.write(curBuffer);
+		System.out.println("writed " + writed);
+		if (curBuffer.hasRemaining()) {
+			System.out.println("writed " + writed + " not write finished ,remains " + curBuffer.remaining());
+			selectionKey.interestOps(selectionKey.interestOps() | SelectionKey.OP_WRITE);
+			if (curBuffer != this.writeBuffer) {
+				writeBuffer=curBuffer;
+			}
 		} else {
-		    if ((selectionKey.isValid() && (selectionKey.interestOps() & SelectionKey.OP_WRITE) == 0)) {
-		        enableWrite(false);
-		    }
+			System.out.println(" block write finished ");
+			writeBuffer=null;
+			if (writeQueue.isEmpty()) {
+				System.out.println(" .... write finished  ,no more data ");
+				selectionKey.interestOps((selectionKey.interestOps() & ~SelectionKey.OP_WRITE)|SelectionKey.OP_READ);
+				
+			} else {
+				ByteBuffer buf = writeQueue.removeFirst();
+				buf.flip();
+				writeToChannel(buf);  //TODO 可以优化成非递归方式
+			}
 		}
 	}
 	
@@ -228,11 +258,6 @@ public class Connection implements Closeable,Runnable{
 //        	readBuffer.recycle();
         	readBuffer=null;
         }
-        if(this.writeBuffer!=null)
-        {
-//        	writeBuffer.recycle();
-        	writeBuffer=null;
-        }
     }
     
     private void closeSocket() {
@@ -256,7 +281,10 @@ public class Connection implements Closeable,Runnable{
 		return this.readBuffer;
 	}
 	
-	public ByteBuffer getWriteBuffer(){
-		return this.writeBuffer;
+	/**
+	 * 将回写数据加入的写队列中
+	 */
+	public void addWriteQueue(ByteBuffer buffer){
+		writeQueue.add(buffer);
 	}
 }

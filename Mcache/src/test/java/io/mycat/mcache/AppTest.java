@@ -1,12 +1,15 @@
 package io.mycat.mcache;
 
-import com.whalin.MemCached.MemCachedClient;
-import com.whalin.MemCached.SockIOPool;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
+import java.io.IOException;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
+import com.whalin.MemCached.MemCachedClient;
+import com.whalin.MemCached.SockIOPool;
+
+import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
 
 /**
  * Unit test for simple App.
@@ -87,5 +90,11 @@ public class AppTest {
         System.out.println(str);
         boolean result = mcc.add("test", "This is a add command");
         System.out.println(result);
+    }
+    
+    @Test
+    public void teadGetk(){
+    	 Map<String,Object> bars = mcc.getMulti(new String[]{"foo","foo1"});
+         System.out.println(">>> " + bars);
     }
 }

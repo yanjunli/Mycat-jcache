@@ -59,10 +59,11 @@ public class IOHandler{
         			 	+ "ready to handle the next read event", conn.getId(), buffer.hashCode(), length, limit);
         			return;
         		}
-        		if(length == BinaryProtocol.memcache_packetHeaderSize){
-        			// @todo handle empty packet
-        			return;
-        		}
+//   fix  bug  some command only has header!!
+//        		if(length == BinaryProtocol.memcache_packetHeaderSize){
+//        			// @todo handle empty packet
+//        			return;
+//        		}
         		/**
         		 * 解析 request header
         		 */
