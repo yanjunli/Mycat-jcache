@@ -13,8 +13,9 @@ import io.mycat.mcache.conn.handler.BinaryProtocol;
  */
 public class CommandContext {	
 	
-	private static Map<CommandType,Command> commandMap = new HashMap<>();
+	private static Map<Object,Command> commandMap = new HashMap<>();
 	
+	//TODO 注册过程待优化.暂时先这样写
 	static {
 		commandMap.put(CommandType.set, new BinarySetCommand());
 		commandMap.put(CommandType.get, new BinaryGetCommand());
@@ -25,6 +26,14 @@ public class CommandContext {
 		commandMap.put(CommandType.delete, new BinaryDeleteCommand());
 		commandMap.put(CommandType.replace, new BinaryReplaceCommand());
 		commandMap.put(CommandType.quit, new BinaryReplaceCommand());
+		commandMap.put(CommandType.touch, new BinaryTouchCommand());
+		commandMap.put(CommandType.add, new BinaryAddCommand());
+		commandMap.put(CommandType.flush, new BinaryFlushCommand());
+		commandMap.put(CommandType.get, new BinaryGatCommand());
+		commandMap.put(CommandType.getk, new BinaryGatKCommand());
+		commandMap.put(CommandType.getkq, new BinaryGatKQCommand());
+		commandMap.put(CommandType.getq, new BinaryGatQCommand());
+		commandMap.put(CommandType.version, new BinaryVersionCommand());
 	}
 	
 	private CommandContext(){}

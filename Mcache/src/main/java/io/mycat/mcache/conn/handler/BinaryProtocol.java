@@ -63,6 +63,7 @@ public final class BinaryProtocol {
 	public static final byte OPCODE_AUTH_LIST = 32;
 	public static final byte OPCODE_START_AUTH = 33;
 	public static final byte OPCODE_AUTH_STEPS = 34;
+	public static final byte OPCODE_TOUCH = 0x1c;
 	
 	public static final byte AUTH_FAILED = 32;
 	public static final byte FURTHER_AUTH = 33;

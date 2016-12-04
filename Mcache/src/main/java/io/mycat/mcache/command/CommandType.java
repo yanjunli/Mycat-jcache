@@ -28,7 +28,8 @@ public enum CommandType {
 	stat(BinaryProtocol.OPCODE_STAT),
 	auth_list(BinaryProtocol.OPCODE_AUTH_LIST),
 	start_auth(BinaryProtocol.OPCODE_START_AUTH),
-	auth_steps(BinaryProtocol.OPCODE_AUTH_STEPS);	
+	auth_steps(BinaryProtocol.OPCODE_AUTH_STEPS),
+	touch(BinaryProtocol.OPCODE_TOUCH);
 	
 	CommandType(byte type){
 		this.type = type;
