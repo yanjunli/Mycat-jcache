@@ -48,14 +48,9 @@
 	  <version>3.0.0</version>
 	</dependency>
 	  <dependency>
-		  <groupId>io.mycat.memory</groupId>
-		  <artifactId>Mycat-Memory</artifactId>
-		  <version>0.0.1-SNAPSHOT</version>
-	  </dependency>
-	  <dependency>
-		  <groupId>io.mycat.memory</groupId>
-		  <artifactId>Mycat-Memory</artifactId>
-		  <version>0.0.1-SNAPSHOT</version>
+		  <groupId>io.mycat</groupId>
+		  <artifactId>Memory</artifactId>
+		  <version>0.0.1-DEV</version>
 	  </dependency>
   </dependencies>
   
