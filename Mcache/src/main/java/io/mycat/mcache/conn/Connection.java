@@ -7,12 +7,18 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.mycat.mcache.McacheGlobalConfig;
+import io.mycat.mcache.conn.handler.AsciiIOHanlder;
+import io.mycat.mcache.conn.handler.BinaryIOHandler;
+import io.mycat.mcache.conn.handler.BinaryProtocol;
 import io.mycat.mcache.conn.handler.BinaryRequestHeader;
 import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 import io.mycat.mcache.conn.handler.IOHandler;
@@ -38,6 +44,8 @@ public class Connection implements Closeable,Runnable{
     private IOHandler ioHandler;  //io 协议处理类
     private Protocol protocol;  //协议类型
     
+    private Map<Protocol,IOHandler> protMap = new HashMap<>();  //动态解析时，可以缓存当前iohandler 减少重复创建
+    
     /**
      * 二进制请求头
      */
@@ -50,6 +58,7 @@ public class Connection implements Closeable,Runnable{
     
     
     public Connection(SocketChannel channel){
+    	
         this.channel = channel;
     }
     
@@ -67,6 +76,10 @@ public class Connection implements Closeable,Runnable{
     
     public Protocol getProtocol(){
     	return this.protocol;
+    }
+    
+    public void setIOHanlder(IOHandler handler){
+    	this.ioHandler = handler;
     }
     
     public void setBinaryRequestHeader(BinaryRequestHeader binaryHeader){
@@ -94,10 +107,12 @@ public class Connection implements Closeable,Runnable{
 		selectionKey = channel.register(selector, SelectionKey.OP_READ);
         readBuffer = ByteBuffer.allocate(1024); // 这里可以修改成从内存模块获取
 //        writeBuffer=ByteBuffer.allocate(1024);
-        ioHandler = new IOHandler();
+//        ioHandler = new IOHandler();
 		// 绑定会话
 		selectionKey.attach(this);  //会在 reactor 中被调用
-        this.ioHandler.onConnected(this);
+		if(ioHandler!=null){
+			ioHandler.onConnected(this);
+		}
 	}
 	
 	@Override
@@ -141,7 +156,7 @@ public class Connection implements Closeable,Runnable{
 	        case 0: {
 	            // 如果空间不够了，继续分配空间读取
 //	            if (readBuffer.isFull()) {
-//	                // @todo extends
+//	                //TODO extends
 //	            }
 	        	if(readBuffer.limit()<readBuffer.capacity()
 	        			&&readBuffer.position()==readBuffer.limit()){
@@ -159,9 +174,31 @@ public class Connection implements Closeable,Runnable{
 	        	logger.info(" read bytes {}.",got);
 	        	// 处理指令
 	        	readBuffer.flip();
-				ioHandler.doReadHandler(this);
+	        	
+	        	if(Protocol.negotiating.equals(McacheGlobalConfig.prot)){
+	            	byte magic = readBuffer.get(0);
+	            	if((magic & 0xff)==(BinaryProtocol.MAGIC_REQ & 0xff)){
+	            		setProtocol(Protocol.binary);
+	            	}else{
+	            		setProtocol(Protocol.ascii);
+	            	}
+	            	ioHandler = getIOHandler(getProtocol());
+	            	ioHandler.doReadHandler(this);
+	            }
 	        }
 	 	}
+	}
+	
+	private IOHandler getIOHandler(Protocol prot){
+		IOHandler handler = protMap.get(prot);
+		if(handler==null){
+			if(Protocol.binary.equals(prot)){
+				handler = new BinaryIOHandler();
+    		}else{
+    			handler = new AsciiIOHanlder();
+    		}
+		}
+		return handler;
 	}
 	
 	/**
@@ -234,6 +271,16 @@ public class Connection implements Closeable,Runnable{
         try {
             SelectionKey key = this.selectionKey;
             key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+            logger.warn("disable write con " + this);
+        } catch (Exception e) {
+            logger.warn("can't disable write " + e + " con " + this);
+        }
+    }
+	
+	public void disableRead() {
+        try {
+            SelectionKey key = this.selectionKey;
+            key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
             logger.warn("disable write con " + this);
         } catch (Exception e) {
             logger.warn("can't disable write " + e + " con " + this);
