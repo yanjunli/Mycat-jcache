@@ -50,8 +50,12 @@ public final class BinaryProtocol {
 	public static final byte OPCODE_DELETE = 4;
 	public static final byte OPCODE_INCREMENT = 5;
 	public static final byte OPCODE_DECREMENT = 6;
+	public static final byte OPCODE_INCREMENTQ = 0x15;
+	public static final byte OPCODE_DECREMENTQ = 0x16;
 	public static final byte OPCODE_QUIT = 7;
+	public static final byte OPCODE_QUITQ = 0x17;
 	public static final byte OPCODE_FLUSH = 8;
+	public static final byte OPCODE_FLUSHQ = 0x18;
 	public static final byte OPCODE_GETQ = 9;
 	public static final byte OPCODE_NOOP = 10;
 	public static final byte OPCODE_VERSION = 11;

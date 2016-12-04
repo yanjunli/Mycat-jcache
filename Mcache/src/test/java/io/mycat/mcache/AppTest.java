@@ -117,9 +117,5 @@ public class AppTest {
     	 Object bars = mcc.keyExists("foo");
     	 System.out.println(">>> " + bars);
     }
-    
-    public void testquit(){
-    	Object bars = mcc.keyExists("foo");
-   	 	System.out.println(">>> " + bars);
-    }
+
 }

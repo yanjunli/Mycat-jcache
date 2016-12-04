@@ -34,9 +34,13 @@ public interface Command {
 	 */
 	public default ByteBuffer readkey(Connection conn) throws IOException{
 		BinaryRequestHeader header = conn.getBinaryRequestHeader();
-		ByteBuffer buffer = conn.getReadDataBuffer();
-		int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen();
-		return getBytes(buffer,keystart, header.getKeylen());
+		if(header.getKeylen()>0){
+			ByteBuffer buffer = conn.getReadDataBuffer();
+			int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen();
+			return getBytes(buffer,keystart, header.getKeylen());
+		}else{
+			return null;
+		}
 	}
 	
 	/**
