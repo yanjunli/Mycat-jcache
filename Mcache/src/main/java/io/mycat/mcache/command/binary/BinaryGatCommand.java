@@ -1,4 +1,4 @@
-package io.mycat.mcache.command;
+package io.mycat.mcache.command.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -7,8 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.mycat.mcache.McacheGlobalConfig;
-import io.mycat.mcache.command.binary.ProtocolCommand;
-import io.mycat.mcache.command.binary.ProtocolResponseStatus;
+import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 import io.mycat.mcache.conn.handler.BinaryResponseHeader;
@@ -37,9 +36,9 @@ import io.mycat.mcache.conn.handler.BinaryResponseHeader;
  * @author liyanjun
  *
  */
-public class BinaryGatQCommand implements Command{
+public class BinaryGatCommand implements Command{
 	
-	private static final Logger logger = LoggerFactory.getLogger(BinaryGatQCommand.class);
+	private static final Logger logger = LoggerFactory.getLogger(BinaryGatCommand.class);
 	
 	private int expir;  //timeout
 	
@@ -52,7 +51,7 @@ public class BinaryGatQCommand implements Command{
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
 			ByteBuffer key = readkey(conn);
 			String keystr = new String(cs.decode(key).array());
-			logger.info("execute command gatq key {}",keystr);
+			logger.info("execute command gat key {}",keystr);
 			byte[] value = "This is a test String".getBytes("UTF-8");
 			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GAT,null,value,null,1l);
 			writeResponse(conn,header,null,null,value);

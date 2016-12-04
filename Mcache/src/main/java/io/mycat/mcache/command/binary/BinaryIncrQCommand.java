@@ -1,4 +1,4 @@
-package io.mycat.mcache.command;
+package io.mycat.mcache.command.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -6,42 +6,35 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mycat.mcache.McacheGlobalConfig;
-import io.mycat.mcache.command.binary.ProtocolCommand;
-import io.mycat.mcache.command.binary.ProtocolResponseStatus;
+import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 
 /**
- * Touch is used to set a new expiration time for an existing item. 
- * GAT (Get and touch) and GATQ will return the value 
- * for the object if it is present in the cache.
- * 
- * Request:
 
-	MUST have extras.
-	MUST have key.
-	MUST NOT have value.
-
-	Extra data for set/add/replace:
-
-     Byte/     0       |       1       |       2       |       3       |
-        /              |               |               |               |
-       |0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|
-       +---------------+---------------+---------------+---------------+
-      0| Expiration                                                    |
-       +---------------+---------------+---------------+---------------+
-       Total 4 bytes
+	These commands will either add or remove the specified amount to the requested counter. 
+	If you want to set the value of the counter with add/set/replace, 
+	the objects data must be the ascii representation of the value and not the byte values of a 64 bit integer.
+	
+	If the counter does not exist, one of two things may happen:
+	
+	If the expiration value is all one-bits (0xffffffff), the operation will fail with NOT_FOUND.
+	For all other expiration values, the operation will succeed by seeding the value for this key 
+	with the provided initial value to expire with the provided expiration time. The flags will be set to zero.
+	Decrementing a counter will never result in a "negative value" (or cause the counter to "wrap"). 
+	instead the counter is set to 0. Incrementing the counter may cause the counter to wrap.
        
  * @author liyanjun
  *
  */
-public class BinaryGatCommand implements Command{
+public class BinaryIncrQCommand implements Command{
 	
-	private static final Logger logger = LoggerFactory.getLogger(BinaryGatCommand.class);
+	private static final Logger logger = LoggerFactory.getLogger(BinaryIncrQCommand.class);
 	
-	private int expir;  //timeout
+	private long amount;
+	private long init;
+	private int expir;
 	
 	@Override
 	public void execute(Connection conn) throws IOException {
