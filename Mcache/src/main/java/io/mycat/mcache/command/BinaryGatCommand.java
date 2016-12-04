@@ -41,6 +41,8 @@ public class BinaryGatCommand implements Command{
 	
 	private static final Logger logger = LoggerFactory.getLogger(BinaryGatCommand.class);
 	
+	private int expir;  //timeout
+	
 	@Override
 	public void execute(Connection conn) throws IOException {
 		int keylen = conn.getBinaryRequestHeader().getKeylen();
@@ -50,18 +52,12 @@ public class BinaryGatCommand implements Command{
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
 			ByteBuffer key = readkey(conn);
 			String keystr = new String(cs.decode(key).array());
-			System.out.println("执行gat 命令   key: "+keystr);
+			logger.info("execute command gat key {}",keystr);
 			byte[] value = "This is a test String".getBytes("UTF-8");
-			int flags = 0x00000020;
-			byte[] extras = new byte[4];
-			extras[0] = (byte) (flags <<24  &0xff);
-			extras[1] = (byte) (flags <<16  &0xff);
-			extras[2] = (byte) (flags <<8   &0xff);
-			extras[3] = (byte) (flags       &0xff);
-			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GET,null,value,extras,1l);
-			writeResponse(conn,header,extras,null,value);
+			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GAT,null,value,null,1l);
+			writeResponse(conn,header,null,null,value);
 		} else {
-			writeResponse(conn, BinaryProtocol.OPCODE_GET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
+			writeResponse(conn, BinaryProtocol.OPCODE_GAT, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
 		}
 	}
 }

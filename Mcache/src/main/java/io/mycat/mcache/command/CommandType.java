@@ -10,6 +10,9 @@ import io.mycat.mcache.conn.handler.BinaryProtocol;
 public enum CommandType {
 	
 	get(BinaryProtocol.OPCODE_GET),
+	getq(BinaryProtocol.OPCODE_GETQ),
+	getk(BinaryProtocol.OPCODE_GETK),
+	getkq(BinaryProtocol.OPCODE_GETKQ),
 	set(BinaryProtocol.OPCODE_SET),
 	add(BinaryProtocol.OPCODE_ADD),
 	replace(BinaryProtocol.OPCODE_REPLACE),
@@ -18,18 +21,19 @@ public enum CommandType {
 	decrement(BinaryProtocol.OPCODE_DECREMENT),
 	quit(BinaryProtocol.OPCODE_QUIT),
 	flush(BinaryProtocol.OPCODE_FLUSH),
-	getq(BinaryProtocol.OPCODE_GETQ),
 	noop(BinaryProtocol.OPCODE_NOOP),
 	version(BinaryProtocol.OPCODE_VERSION),
-	getk(BinaryProtocol.OPCODE_GETK),
-	getkq(BinaryProtocol.OPCODE_GETKQ),
 	append(BinaryProtocol.OPCODE_APPEND),
 	prepend(BinaryProtocol.OPCODE_PREPEND),
 	stat(BinaryProtocol.OPCODE_STAT),
 	auth_list(BinaryProtocol.OPCODE_AUTH_LIST),
 	start_auth(BinaryProtocol.OPCODE_START_AUTH),
 	auth_steps(BinaryProtocol.OPCODE_AUTH_STEPS),
-	touch(BinaryProtocol.OPCODE_TOUCH);
+	touch(BinaryProtocol.OPCODE_TOUCH),
+	gat(BinaryProtocol.OPCODE_GAT),
+	gatq(BinaryProtocol.OPCODE_GATQ),
+	gatk(BinaryProtocol.OPCODE_GATK),
+	gatkq(BinaryProtocol.OPCODE_GATKQ);
 	
 	CommandType(byte type){
 		this.type = type;

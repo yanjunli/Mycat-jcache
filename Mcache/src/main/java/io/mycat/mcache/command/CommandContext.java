@@ -29,10 +29,10 @@ public class CommandContext {
 		commandMap.put(CommandType.touch, new BinaryTouchCommand());
 		commandMap.put(CommandType.add, new BinaryAddCommand());
 		commandMap.put(CommandType.flush, new BinaryFlushCommand());
-		commandMap.put(CommandType.get, new BinaryGatCommand());
-		commandMap.put(CommandType.getk, new BinaryGatKCommand());
-		commandMap.put(CommandType.getkq, new BinaryGatKQCommand());
-		commandMap.put(CommandType.getq, new BinaryGatQCommand());
+		commandMap.put(CommandType.gat, new BinaryGatCommand());
+		commandMap.put(CommandType.gatk, new BinaryGatKCommand());
+		commandMap.put(CommandType.gatkq, new BinaryGatKQCommand());
+		commandMap.put(CommandType.gatq, new BinaryGatQCommand());
 		commandMap.put(CommandType.version, new BinaryVersionCommand());
 	}
 	
