@@ -3,13 +3,11 @@ package io.mycat.mcache;
 import java.io.IOException;
 import java.util.Map;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.whalin.MemCached.MemCachedClient;
 import com.whalin.MemCached.SockIOPool;
-
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
 
 /**
  * Unit test for simple App.
@@ -18,8 +16,12 @@ public class AppTest {
 	
 	MemCachedClient mcc = new MemCachedClient(true);  //true 代表 二进制协议，false 代表 文本协议
 	
-	@Before
-    public void setup() {
+	@BeforeClass
+    public static void setup() throws Exception{
+		
+//		McacheMain.main(null);
+		
+		
 		// 设置缓存服务器列表，当使用分布式缓存的时，可以指定多个缓存服务器。这里应该设置为多个不同的服务，我这里将两个服务设置为一样的，大家不要向我学习，呵呵。
         String[] servers =
                 {
@@ -67,34 +69,57 @@ public class AppTest {
         System.out.println(">>> " + bar);
 	}
 
-    @Test
-    public void testReadWritePool() throws InterruptedException {
-        ReadWritePool.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 1000, "123".getBytes());
-        ReadWritePool.set("1234", 0, "1234".getBytes().length, System.currentTimeMillis() + 100, "123".getBytes());
-        ReadWritePool.set("1235", 0, "1235".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        ReadWritePool.set("1236", 0, "1236".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        ReadWritePool.set("1237", 0, "1237".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1235"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1236"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1237"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1234"})[0].values));
-        Thread.sleep(1000);
-        //System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
-    }
+//    @Test
+//    public void testReadWritePool() throws InterruptedException {
+//        ReadWritePool.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 1000, "123".getBytes());
+//        ReadWritePool.set("1234", 0, "1234".getBytes().length, System.currentTimeMillis() + 100, "123".getBytes());
+//        ReadWritePool.set("1235", 0, "1235".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+//        ReadWritePool.set("1236", 0, "1236".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+//        ReadWritePool.set("1237", 0, "1237".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+//        System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
+//        System.out.println(new String(ReadWritePool.get(new String[]{"1235"})[0].values));
+//        System.out.println(new String(ReadWritePool.get(new String[]{"1236"})[0].values));
+//        System.out.println(new String(ReadWritePool.get(new String[]{"1237"})[0].values));
+//        System.out.println(new String(ReadWritePool.get(new String[]{"1234"})[0].values));
+//        Thread.sleep(1000);
+//        //System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
+//    }
 
     @Test
     public void testAddCommand(){
         mcc.set("test","add command");
-        String str = mcc.get("test").toString();
+        Object str = mcc.get("test");;
         System.out.println(str);
         boolean result = mcc.add("test", "This is a add command");
         System.out.println(result);
     }
     
     @Test
-    public void teadGetk(){
+    public void getMulti(){
     	 Map<String,Object> bars = mcc.getMulti(new String[]{"foo","foo1"});
          System.out.println(">>> " + bars);
+    }
+    
+    @Test
+    public void teadGets(){
+    	 Object bars = mcc.gets("foo");
+         System.out.println(">>> " + bars);
+    }
+    
+    @Test
+    public void testgetMultiArray(){
+    	 Object bars = mcc.getMultiArray(new String[]{"foo","foo1"});
+         System.out.println(">>> " + bars);
+    }
+    
+    @Test
+    public void testgetMultiArray1(){
+    	 Object bars = mcc.keyExists("foo");
+    	 System.out.println(">>> " + bars);
+    }
+    
+    public void testquit(){
+    	Object bars = mcc.keyExists("foo");
+   	 	System.out.println(">>> " + bars);
     }
 }
