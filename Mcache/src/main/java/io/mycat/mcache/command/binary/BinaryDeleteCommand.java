@@ -1,8 +1,7 @@
-package io.mycat.mcache.command;
+package io.mycat.mcache.command.binary;
 
 import io.mycat.mcache.TCPNIOAcceptor;
-import io.mycat.mcache.command.binary.ProtocolCommand;
-import io.mycat.mcache.command.binary.ProtocolResponseStatus;
+import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
 import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
 import mycat.leaderus.lzy.cachesys.memcache_v5.ReturnStatus;

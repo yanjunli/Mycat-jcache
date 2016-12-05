@@ -34,9 +34,13 @@ public interface Command {
 	 */
 	public default ByteBuffer readkey(Connection conn) throws IOException{
 		BinaryRequestHeader header = conn.getBinaryRequestHeader();
-		ByteBuffer buffer = conn.getReadDataBuffer();
-		int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen();
-		return getBytes(buffer,keystart, header.getKeylen());
+		if(header.getKeylen()>0){
+			ByteBuffer buffer = conn.getReadDataBuffer();
+			int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen();
+			return getBytes(buffer,keystart, header.getKeylen());
+		}else{
+			return null;
+		}
 	}
 	
 	/**
@@ -99,13 +103,18 @@ public interface Command {
 													byte[] key,byte[] value,byte[] extras,long cas){
 		BinaryResponseHeader header = new BinaryResponseHeader();
 		
+		int keylen  = key!=null?key.length:0;
+		int extraslen = extras!=null?extras.length:0;
+		int valuelen  = value !=null?value.length:0;
+		int bodylen = valuelen+extraslen+keylen;
+		
 		header.setMagic(BinaryProtocol.MAGIC_RESP);
 		header.setOpcode(opcode);
-		header.setKeylen(key!=null?(short)key.length:0);
-		header.setExtlen((byte)extras.length);
+		header.setKeylen((byte)keylen);
+		header.setExtlen((byte)extraslen);
 		header.setDatatype(BinaryProtocol.PROTOCOL_BINARY_RAW_BYTES);
 		header.setStatus(ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus());
-		header.setBodylen(value.length+extras.length+(key!=null?(short)key.length:0));
+		header.setBodylen(bodylen);
 		header.setOpaque(binaryHeader.getOpaque());
 		header.setCas(cas);
 		return header;
@@ -119,7 +128,8 @@ public interface Command {
 	 * @param cas
 	 */
 	public default void writeResponse(Connection conn,byte opcode,short status,long cas){
-		ByteBuffer write = conn.getWriteBuffer();
+		int totallen = BinaryProtocol.memcache_packetHeaderSize;
+		ByteBuffer write = ByteBuffer.allocate(totallen);
 		write.put(BinaryProtocol.MAGIC_RESP);
 		write.put(opcode);
 		write.putShort((short)0x0000);
@@ -129,7 +139,7 @@ public interface Command {
 		write.putInt(0x00);
 		write.putInt(0);
 		write.putLong(cas);
-		write.flip();
+		conn.addWriteQueue(write);
 		conn.enableWrite(true);
 	}
 	
@@ -140,7 +150,8 @@ public interface Command {
 	 * @param status
 	 */
 	public static void writeResponseError(Connection conn,byte opcode,short status){
-		ByteBuffer write = conn.getWriteBuffer();
+		int totallen = BinaryProtocol.memcache_packetHeaderSize;
+		ByteBuffer write = ByteBuffer.allocate(totallen);
 		write.put(BinaryProtocol.MAGIC_RESP);
 		write.put(opcode);
 		write.putShort((short)0x0000);
@@ -150,7 +161,7 @@ public interface Command {
 		write.putInt(0x00);
 		write.putInt(0);
 		write.putLong(0);
-		write.flip();
+		conn.addWriteQueue(write);
 		conn.enableWrite(true);
 	}
 	
@@ -160,7 +171,8 @@ public interface Command {
 	 * @param conn
 	 */
 	public default void writeResponse(Connection conn,BinaryResponseHeader header,byte[] extras,byte[] key,byte[] value){
-		ByteBuffer write = conn.getWriteBuffer();
+		int totallen = BinaryProtocol.memcache_packetHeaderSize + header.getBodylen();
+		ByteBuffer write = ByteBuffer.allocate(totallen);
 		write.clear();  
 		write.put(header.getMagic());
 		write.put(header.getOpcode());
@@ -180,7 +192,7 @@ public interface Command {
 		if(value!=null){
 			write.put(value);
 		}
-		write.flip();
+		conn.addWriteQueue(write);
 		conn.enableWrite(true);
 	}
 }

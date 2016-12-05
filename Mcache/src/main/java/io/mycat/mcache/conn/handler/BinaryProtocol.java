@@ -50,8 +50,12 @@ public final class BinaryProtocol {
 	public static final byte OPCODE_DELETE = 4;
 	public static final byte OPCODE_INCREMENT = 5;
 	public static final byte OPCODE_DECREMENT = 6;
+	public static final byte OPCODE_INCREMENTQ = 0x15;
+	public static final byte OPCODE_DECREMENTQ = 0x16;
 	public static final byte OPCODE_QUIT = 7;
+	public static final byte OPCODE_QUITQ = 0x17;
 	public static final byte OPCODE_FLUSH = 8;
+	public static final byte OPCODE_FLUSHQ = 0x18;
 	public static final byte OPCODE_GETQ = 9;
 	public static final byte OPCODE_NOOP = 10;
 	public static final byte OPCODE_VERSION = 11;
@@ -63,6 +67,11 @@ public final class BinaryProtocol {
 	public static final byte OPCODE_AUTH_LIST = 32;
 	public static final byte OPCODE_START_AUTH = 33;
 	public static final byte OPCODE_AUTH_STEPS = 34;
+	public static final byte OPCODE_TOUCH = 0x1c;
+	public static final byte OPCODE_GAT = 0x1c;
+	public static final byte OPCODE_GATQ = 0x1e;
+	public static final byte OPCODE_GATK = 0x23;
+	public static final byte OPCODE_GATKQ = 0x24;
 	
 	public static final byte AUTH_FAILED = 32;
 	public static final byte FURTHER_AUTH = 33;

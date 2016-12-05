@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import io.mycat.mcache.conn.ConnectIdGenerator;
 import io.mycat.mcache.conn.Connection;
+import io.mycat.mcache.conn.handler.AsciiIOHanlder;
+import io.mycat.mcache.conn.handler.BinaryIOHandler;
+import io.mycat.mcache.model.Protocol;
 
 /**
  * @author liyanjun
@@ -80,6 +83,11 @@ public final class TCPNIOAcceptor extends Thread {
 			Connection conn = new Connection(channel);
 			conn.setId(ConnectIdGenerator.getINSTNCE().getId());
 			conn.setProtocol(McacheGlobalConfig.prot);
+			if(Protocol.ascii.equals(McacheGlobalConfig.prot)){
+				conn.setIOHanlder(new AsciiIOHanlder());
+			}else if(Protocol.binary.equals(McacheGlobalConfig.prot)){
+				conn.setIOHanlder(new BinaryIOHandler());
+			}
 			reactor.registerNewClient(conn);
 		} catch (Throwable e) {
 			closeChannel(channel);

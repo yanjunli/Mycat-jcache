@@ -53,4 +53,7 @@ public final class McacheGlobalConfig {
 	/** Maximum length of a value */
 	public static final long VALUE_MAX_LENGTH=1024*1024;
 	
+	/** current version */
+	public static final String version = "0.1.0";
+	
 }

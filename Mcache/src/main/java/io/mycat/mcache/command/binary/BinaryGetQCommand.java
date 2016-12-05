@@ -1,4 +1,4 @@
-package io.mycat.mcache.command;
+package io.mycat.mcache.command.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -7,14 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.mycat.mcache.McacheGlobalConfig;
-import io.mycat.mcache.command.binary.ProtocolCommand;
-import io.mycat.mcache.command.binary.ProtocolResponseStatus;
+import io.mycat.mcache.NIOReactor;
+import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 import io.mycat.mcache.conn.handler.BinaryResponseHeader;
 
 /**
- * get 命令 
+ * getq 命令  The getq command will not send a response on a cache miss. 
    Field        (offset) (value)
    Magic        (0)    : 0x81
    Opcode       (1)    : 0x00
@@ -32,9 +32,9 @@ import io.mycat.mcache.conn.handler.BinaryResponseHeader;
  * @author liyanjun
  *
  */
-public class BinaryGetCommand implements Command{
+public class BinaryGetQCommand implements Command{
 	
-	private static final Logger logger = LoggerFactory.getLogger(BinaryGetCommand.class);
+	private static final Logger logger = LoggerFactory.getLogger(BinaryGetQCommand.class);
 	
 	@Override
 	public void execute(Connection conn) throws IOException {
@@ -46,7 +46,7 @@ public class BinaryGetCommand implements Command{
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
 			ByteBuffer key = readkey(conn);
 			String keystr = new String(cs.decode(key).array());
-			logger.info("execute command get key {}",keystr);
+			logger.info("execute command getq key {}",keystr);
 			byte[] value = "This is a test String".getBytes("UTF-8");
 			int flags = 0x00000020;
 			byte[] extras = new byte[4];
@@ -54,10 +54,10 @@ public class BinaryGetCommand implements Command{
 			extras[1] = (byte) (flags <<16  &0xff);
 			extras[2] = (byte) (flags <<8   &0xff);
 			extras[3] = (byte) (flags       &0xff);
-			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GET,null,value,extras,1l);
+			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GETQ,null,value,extras,1l);
 			writeResponse(conn,header,extras,null,value);
 		} else {
-			writeResponse(conn, BinaryProtocol.OPCODE_GET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
+			writeResponse(conn, BinaryProtocol.OPCODE_GETQ, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
 		}
 	}
 }

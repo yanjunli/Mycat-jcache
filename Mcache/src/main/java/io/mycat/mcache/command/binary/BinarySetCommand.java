@@ -1,10 +1,10 @@
-package io.mycat.mcache.command;
+package io.mycat.mcache.command.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import io.mycat.mcache.McacheGlobalConfig;
-import io.mycat.mcache.command.binary.ProtocolResponseStatus;
+import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
 
