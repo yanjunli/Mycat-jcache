@@ -114,7 +114,7 @@ public class BinaryIOHandler implements IOHandler{
 	 */
 	private int getPacketLength(ByteBuffer buffer,int offset) throws IOException{
 		offset += 8;
-		int length = buffer.get(offset) & 0xff << 24;
+		int length = buffer.get(offset) & 0xff  << 24;
 		length |= (buffer.get(++offset) & 0xff) << 16;
 		length |= (buffer.get(++offset) & 0xff) << 8;
 		length |= (buffer.get(++offset) & 0xff) ;
