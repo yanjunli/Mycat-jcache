@@ -75,6 +75,7 @@ public class BinaryIOHandler implements IOHandler{
     		offset += length;
     		readbuffer.position(offset);
     	}
+    	readbuffer.clear();
 	}
 
 	/**
