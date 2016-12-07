@@ -1,17 +1,15 @@
 package io.mycat.mcache;
 
+import com.whalin.MemCached.MemCachedClient;
+import com.whalin.MemCached.SockIOPool;
+import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.whalin.MemCached.MemCachedClient;
-import com.whalin.MemCached.SockIOPool;
-
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
 
 /**
  * Unit test for simple App.
