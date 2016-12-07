@@ -68,7 +68,7 @@ class Slab {
             chunkIndex = new AtomicLong(0);
             this.index = index;
             chunk_size = (int) Math.pow(MemConfig.FACTOR, this.index) * MemConfig.CHUNK_SIZES;
-            usedChunk = new AtomicLong[(chunkTotalNum = MemConfig.SLAB_SIZE / chunk_size) >> 6 + 1];
+            usedChunk = new AtomicLong[((chunkTotalNum = MemConfig.SLAB_SIZE / chunk_size) >>> 6) + 1];
             for (int i = 0; i < usedChunk.length; i++) {
                 usedChunk[i] = new AtomicLong(0);
             }
@@ -76,6 +76,9 @@ class Slab {
                 buffer.putLong(TIMEOUT_OFFSET + chunk_size * i, Long.MAX_VALUE);
                 // buffer.putInt(CHUNK_REUSED_OFFSET + chunk_size * i, 0);
             }
+            System.out.println(chunk_size);
+            System.out.println(usedChunk.length);
+            System.out.println(chunkTotalNum);
             thread = new Thread() {
                 long timeout, tmp;
 
@@ -126,9 +129,10 @@ class Slab {
         }
         if (chunkIndex < chunkTotalNum) {
             int tmpIndex = (int) (chunkIndex * chunk_size);
+            bytesSizes = bytesSizes > data.length ? data.length : bytesSizes;
             buffer.putInt(tmpIndex, flags).putLong(tmpIndex + TIMEOUT_OFFSET, timeout).putLong(tmpIndex + CAS_OFFSET, CAS.incrementAndGet()).putInt(tmpIndex + VALUESLENTH_OFFSET, bytesSizes);
             for (int i = 0; i < bytesSizes; i++) {
-                buffer.put(tmpIndex + VALUES_OFFSET, data[i]);
+                buffer.put(tmpIndex + VALUES_OFFSET + i, data[i]);
             }
         } else
             return -1;
@@ -140,9 +144,10 @@ class Slab {
             buffer.putLong(tmpIndex + TIMEOUT_OFFSET, timeout);
             return true;
         }
+        bytesSizes = bytesSizes > data.length ? data.length : bytesSizes;
         buffer.putInt(tmpIndex, flags).putLong(tmpIndex + TIMEOUT_OFFSET, timeout).putLong(tmpIndex + CAS_OFFSET, CAS.incrementAndGet()).putInt(tmpIndex + VALUESLENTH_OFFSET, bytesSizes);
         for (int i = 0; i < bytesSizes; i++) {
-            buffer.put(tmpIndex + VALUES_OFFSET, data[i]);
+            buffer.put(tmpIndex + VALUES_OFFSET + i, data[i]);
         }
         return true;
     }
@@ -154,9 +159,10 @@ class Slab {
         }
         CAStmp.set(CAS);
         if (CAStmp.compareAndSet(buffer.getLong(tmpIndex + CAS_OFFSET), CAS + 1)) {
+            bytesSizes = bytesSizes > data.length ? data.length : bytesSizes;
             buffer.putInt(tmpIndex, flags).putLong(tmpIndex + TIMEOUT_OFFSET, timeout).putLong(tmpIndex + CAS_OFFSET, Slab.CAS.incrementAndGet()).putInt(tmpIndex + VALUESLENTH_OFFSET, bytesSizes);
             for (int i = 0; i < bytesSizes; i++) {
-                buffer.put(tmpIndex + VALUES_OFFSET, data[i]);
+                buffer.put(tmpIndex + VALUES_OFFSET + i, data[i]);
             }
             return true;
         }
@@ -165,10 +171,11 @@ class Slab {
 
     ResultsWithCAS getChunk(int index) {
         index *= chunk_size;
-        int valuelength = buffer.getInt(index * chunk_size + VALUESLENTH_OFFSET);
+        int valuelength = buffer.getInt(index + VALUESLENTH_OFFSET);
         byte[] bytes = new byte[valuelength];
-        for (int i = index * chunk_size; i < index * chunk_size + VALUES_OFFSET + valuelength; i++) {
-            bytes[i] = buffer.get(i);
+        for (int i = 0; i < valuelength; i++) {
+            System.err.println(index + VALUES_OFFSET + i);
+            bytes[i] = buffer.get(index + VALUES_OFFSET + i);
         }
         return new ResultsWithCAS(buffer.getInt(index), buffer.getLong(index + TIMEOUT_OFFSET), buffer.getLong(index + CAS_OFFSET), buffer.getInt(index + VALUESLENTH_OFFSET), bytes);
     }

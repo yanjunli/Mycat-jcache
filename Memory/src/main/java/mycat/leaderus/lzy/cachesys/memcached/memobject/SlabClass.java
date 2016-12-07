@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 class SlabClass {
     private static LinkedList<SlabClass> all = new LinkedList();
-    private static AtomicInteger slabClassTotal = new AtomicInteger(1);
+    private static AtomicInteger slabClassTotal = new AtomicInteger(0);
     public final short slabClassInx;
     private ByteBuffer buffer = ByteBuffer.allocateDirect(MemConfig.PAGE_TOTAL_MEMORY_SIZE);
     private Slab[] slabs = new Slab[MemConfig.PAGE_TOTAL_MEMORY_SIZE / MemConfig.SLAB_SIZE];
@@ -26,12 +26,15 @@ class SlabClass {
             buffer.limit((i + 1) * MemConfig.SLAB_SIZE);
             slabs[i] = new Slab(buffer.slice(), (short) i);
         }
+        for (int i = 0; i < slabclass.length; i++) {
+            slabclass[i] = new LinkedList<>();
+        }
         this.slabClassInx = slabClassInx;
     }
 
     private static long getSlabClass(SlabClass tmpSlabClass, int flags, int bytesSizes, long timeout, byte[] data) {
         int index;
-        int size = data.length;
+        int size = data.length + Slab.VALUES_OFFSET;
         if (size <= MemConfig.CHUNK_SIZES) {
             index = 0;
         } else {
@@ -98,9 +101,13 @@ class SlabClass {
 
 
     public static ResultsWithCAS getBuffer(long index) {
+        System.out.println(index);
         short i = (short) ((index & 0x7fff000000000000L) >> 48);
         short j = (short) ((index & 0x7fff00000000L) >> 32);
         int k = (int) (index & 0x7fffffff);
+        System.out.println(i);
+        System.out.println(j);
+        System.out.println(k);
         return all.get(i).slabs[j].getChunk(k);
     }
 

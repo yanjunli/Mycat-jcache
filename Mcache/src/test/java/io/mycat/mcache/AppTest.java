@@ -2,7 +2,7 @@ package io.mycat.mcache;
 
 import com.whalin.MemCached.MemCachedClient;
 import com.whalin.MemCached.SockIOPool;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
+import mycat.leaderus.lzy.cachesys.memcached.memobject.JMemcached;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -72,19 +72,19 @@ public class AppTest {
 	}
 
     @Test
-    public void testReadWritePool() throws InterruptedException {
-        ReadWritePool.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 1000, "123".getBytes());
-        ReadWritePool.set("1234", 0, "1234".getBytes().length, System.currentTimeMillis() + 100, "123".getBytes());
-        ReadWritePool.set("1235", 0, "1235".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        ReadWritePool.set("1236", 0, "1236".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        ReadWritePool.set("1237", 0, "1237".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
-        System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1235"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1236"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1237"})[0].values));
-        System.out.println(new String(ReadWritePool.get(new String[]{"1234"})[0].values));
+    public void testJMemcached() throws InterruptedException {
+        JMemcached.set("123", 0, "123".getBytes().length, System.currentTimeMillis() + 1000, "123".getBytes());
+        JMemcached.set("1234", 0, "1234".getBytes().length, System.currentTimeMillis() + 100, "123".getBytes());
+        JMemcached.set("1235", 0, "1235".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        JMemcached.set("1236", 0, "1236".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        JMemcached.set("1237", 0, "1237".getBytes().length, System.currentTimeMillis() + 100000, "123".getBytes());
+        System.err.println(new String(JMemcached.get(new String[]{"123"})[0].values));
+        System.err.println(new String(JMemcached.get(new String[]{"1235"})[0].values));
+        System.err.println(new String(JMemcached.get(new String[]{"1236"})[0].values));
+        System.err.println(new String(JMemcached.get(new String[]{"1237"})[0].values));
+        System.err.println(new String(JMemcached.get(new String[]{"1234"})[0].values));
         Thread.sleep(1000);
-        //System.out.println(new String(ReadWritePool.get(new String[]{"123"})[0].values));
+        //System.out.println(new String(JMemcached.get(new String[]{"123"})[0].values));
     }
 
     @Test

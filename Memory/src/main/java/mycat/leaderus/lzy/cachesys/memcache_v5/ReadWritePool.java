@@ -237,7 +237,7 @@ public class ReadWritePool {
                     ByteBuffer buffer = cache.get(key).getByteBuffer();
                     tmp = new byte[buffer.limit()];
                     buffer.get(tmp).flip();
-                    results[i] = new Results(tmpChunk.getFlags(), tmpChunk.getByteSizes(), tmp);
+                    //results[i] = new Results(tmpChunk.getFlags(),tmpChunk, tmpChunk.getByteSizes(), tmp);
                     tmpChunk.setReading(false);
                 } else {
                     System.out.println("缓存过期");
@@ -270,7 +270,7 @@ public class ReadWritePool {
                     ByteBuffer buffer = cache.get(key).getByteBuffer();
                     tmp = new byte[buffer.limit()];
                     buffer.get(tmp).flip();
-                    results[i] = new ResultsWithCAS(tmpChunk.getFlags(), tmpChunk.getByteSizes(), tmp, tmpChunk.getCAS());
+                    //results[i] = new ResultsWithCAS(tmpChunk.getFlags(), tmpChunk.getByteSizes(), tmp, tmpChunk.getCAS());
                     tmpChunk.setReading(false);
                 } else {
                     System.out.println("缓存过期");
