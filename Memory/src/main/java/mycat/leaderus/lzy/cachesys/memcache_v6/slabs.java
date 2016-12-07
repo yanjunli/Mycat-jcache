@@ -1,5 +1,7 @@
 package mycat.leaderus.lzy.cachesys.memcache_v6;
 
+import java.nio.ByteBuffer;
+
 import static java.lang.System.arraycopy;
 
 /**
@@ -18,12 +20,20 @@ public class slabs {
     private long memLimit =64;//default 64M
     private long memMalloced=0;
 
+    private ByteBuffer memBase;
+    private ByteBuffer memCurrent;
+    private int memAvail = 0;
+
     public void initSlabs(int limit,double factor,boolean prealloc){
         int i=POWER_SMALLEST-1;
         memLimit = limit;
         if(prealloc){
             //TODO预分配内存
-            preallocateSlabs(powerLargest);
+           memBase = ByteBuffer.allocateDirect(limit);
+            if(memBase!=null){
+                memCurrent = memBase;
+                memLimit = limit;
+            }
         }
         initSlabClass();
 
@@ -39,6 +49,12 @@ public class slabs {
         powerLargest = i;
         slabClasses[powerLargest].setSize(Settings.ITEM_SIZE_MAX);
         slabClasses[powerLargest].setPerslab(1);
+
+        if(prealloc){
+            //TODO预分配内存
+            preallocateSlabs(powerLargest);
+        }
+
     }
 
     //参数值为使用到的slabclass数组元素个数
@@ -80,6 +96,7 @@ public class slabs {
     }
 
     private Slab allocateMemory(int len) {
+
         return null;
     }
 
