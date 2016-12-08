@@ -1,4 +1,4 @@
-package mycat.leaderus.lzy.cachesys.memcacheed.memobject;
+package mycat.leaderus.lzy.cachesys.memcached.memobject;
 
 /**
  * Created by wadasiwaAcer01 on 2016/12/2.
