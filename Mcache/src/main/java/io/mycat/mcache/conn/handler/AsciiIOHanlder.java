@@ -43,4 +43,23 @@ public class AsciiIOHanlder implements IOHandler {
 			// 处理指令 TODO
 //			processCommand(conn,readedLine);
 		}	}
+	/** yangll TODO review
+	byte[] data = new byte[buffer.limit()];
+	int last = buffer.limit()-1;
+	buffer.get(data,0,buffer.limit());
+	if(data[last]!=(byte)'\n'){//文本命令以"\r\n"结束
+		logger.debug("C#:{},B#:{},not whole command",conn.getId(),buffer.hashCode());
+		return ;
+	}
+	if(data[last-1]==(byte)'\r'){
+		last--;
+	}
+	//完整的命令
+	if(last>0) {
+		String commandStr = new String(data, 0, last + 1, Charset.forName("utf-8"));
+		//process text command
+		//command.executeText(commandStr);
+	}
+  **/
+
 }
