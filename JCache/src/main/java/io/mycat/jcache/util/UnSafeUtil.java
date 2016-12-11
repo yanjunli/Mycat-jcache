@@ -29,7 +29,7 @@ public class UnSafeUtil {
 	 * Reads a byte from the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            
 	 * @return the value read
 	 */
 	public static byte getByte(long pos) {
@@ -40,7 +40,7 @@ public class UnSafeUtil {
 	 * Reads a byte (volatile) from the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static byte getByteVolatile(long pos) {
@@ -51,7 +51,7 @@ public class UnSafeUtil {
 	 * Reads a short from the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static short getShort(long pos) {
@@ -62,7 +62,7 @@ public class UnSafeUtil {
 	 * Reads a short (volatile) from the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static short getShortVolatile(long pos) {
@@ -73,7 +73,7 @@ public class UnSafeUtil {
 	 * Reads an int from the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static int getInt(long pos) {
@@ -84,7 +84,7 @@ public class UnSafeUtil {
 	 * Reads an int (volatile) from the specified position.
 	 * 
 	 * @param pos
-	 *            position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static int getIntVolatile(long pos) {
@@ -95,7 +95,7 @@ public class UnSafeUtil {
 	 * Reads a long from the specified position.
 	 * 
 	 * @param pos
-	 *            position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static long getLong(long pos) {
@@ -106,7 +106,7 @@ public class UnSafeUtil {
 	 * Reads a long (volatile) from the specified position.
 	 * 
 	 * @param pos
-	 *            position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @return the value read
 	 */
 	public static long getLongVolatile(long pos) {
@@ -117,7 +117,7 @@ public class UnSafeUtil {
 	 * Writes a byte to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -129,7 +129,7 @@ public class UnSafeUtil {
 	 * Writes a byte (volatile) to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -141,7 +141,7 @@ public class UnSafeUtil {
 	 * Writes an int to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -153,7 +153,7 @@ public class UnSafeUtil {
 	 * Writes an int (volatile) to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -165,7 +165,7 @@ public class UnSafeUtil {
 	 * Writes an short to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -177,7 +177,7 @@ public class UnSafeUtil {
 	 * Writes an short (volatile) to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -189,7 +189,7 @@ public class UnSafeUtil {
 	 * Writes a long to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -201,7 +201,7 @@ public class UnSafeUtil {
 	 * Writes a long (volatile) to the specified position.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param val
 	 *            the value to write
 	 */
@@ -222,7 +222,7 @@ public class UnSafeUtil {
 	 * Reads a buffer of data.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param data
 	 *            the input buffer
 	 * @param offset
@@ -238,7 +238,7 @@ public class UnSafeUtil {
 	 * Writes a buffer of data.
 	 * 
 	 * @param pos
-	 *            the position in the memory mapped file
+	 *            the position in the memory addrress
 	 * @param data
 	 *            the output buffer
 	 * @param offset

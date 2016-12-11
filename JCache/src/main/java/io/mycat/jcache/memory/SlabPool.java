@@ -40,12 +40,6 @@ public class SlabPool {
 		return res;
 	}
 	
-	/** Init the subsystem. 1st argument is the limit on no. of bytes to allocate,
-	    0 if no limit. 2nd argument is the growth factor; each slab will use a chunk
-	    size equal to the previous slab's chunk size times this factor.
-	    3rd argument specifies if the slab allocator should allocate all memory
-	    up front (if true), or allocate memory in chunks as it is needed (if false)
-	*/
 	public void init(int memLimit){
 		int size = Settings.chunkSize+Settings.ITEM_HEADER_LENGTH;
 		if(!Settings.prealloc){
@@ -111,10 +105,8 @@ public class SlabPool {
 		if(memBase > 0 && memAlloced+len > memBase && slabc.perSlab > 0 && globalc.perSlab == 0)
 			return false;
 		
-		Slab gslab = getPagefromGlobalPool();
-		Slab slab = memoryAllocate(len);
-		//TODO grow_slab_list(id)
-		if(gslab == null && slab == null){
+		Slab slab = null;
+		if(grow_slab_list(id)||((slab=getPagefromGlobalPool())==null&&(slab = memoryAllocate(len))==null)){
 			log.error("new slab fail from class id "+id);
 			return false;
 		}
@@ -125,6 +117,22 @@ public class SlabPool {
 		slabc.slabs.addLast(slab);
 		
 		return true;
+	}
+	
+	public boolean grow_slab_list(int id){
+//	    slabclass_t *p = &slabclass[id];
+//	    if (p->slabs == p->list_size) {
+//	        size_t new_size =  (p->list_size != 0) ? p->list_size * 2 : 16;
+//	        void *new_list = realloc(p->slab_list, new_size * sizeof(void *));
+//	        if (new_list == 0) return 0;
+//	        p->list_size = new_size;
+//	        p->slab_list = new_list;
+//	    }
+//	    return 1;
+		
+		
+		
+		return false;
 	}
 	
 	//将ptr指向的内存空间按第id个slabclass的size进行切分
