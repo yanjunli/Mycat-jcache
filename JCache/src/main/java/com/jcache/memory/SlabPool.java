@@ -1,11 +1,10 @@
 package com.jcache.memory;
 
-import java.nio.ByteBuffer;
-
-import org.apache.log4j.Logger;
-
 import com.jcache.enums.ItemFlags;
 import com.jcache.setting.Settings;
+import org.apache.log4j.Logger;
+
+import java.nio.ByteBuffer;
 
 public class SlabPool {
 	Logger log = Logger.getLogger(SlabPool.class);

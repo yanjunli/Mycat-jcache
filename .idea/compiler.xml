@@ -31,7 +31,7 @@
         <processorPath useClasspath="true" />
         <module name="Memory" />
       </profile>
-      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+      <profile default="false" name="Annotation profile for JCache" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -40,7 +40,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="JCache" target="1.5" />
+      <module name="JCache" target="1.8" />
       <module name="Mcache" target="1.8" />
       <module name="Memory" target="1.8" />
       <module name="Mycat-jcache" target="1.5" />

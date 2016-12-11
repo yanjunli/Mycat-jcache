@@ -10,9 +10,6 @@ package com.jcache.memory;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.LinkedTransferQueue;
 
 import org.apache.log4j.Logger;
 

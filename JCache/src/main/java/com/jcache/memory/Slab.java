@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p> 未经本公司许可，不得以任何方式复制或使用本程序任何部分 <p>
  * 
  * @author <a href="mailto:tangww@corp.21cn.com">tangww</a>
- * @version jcache
+ * @version com.jcache
  * @since 2016年11月29日 
  *
  */
