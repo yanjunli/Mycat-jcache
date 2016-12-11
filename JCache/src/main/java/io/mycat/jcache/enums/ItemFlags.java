@@ -1,4 +1,4 @@
-package com.jcache.enums;
+package io.mycat.jcache.enums;
 
 public enum ItemFlags {
 	ITEM_LINKED((byte)1),

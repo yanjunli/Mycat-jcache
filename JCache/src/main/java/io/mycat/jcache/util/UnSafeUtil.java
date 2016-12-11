@@ -1,4 +1,4 @@
-package com.jcache.util;
+package io.mycat.jcache.util;
 
 import java.lang.reflect.Field;
 
@@ -212,12 +212,10 @@ public class UnSafeUtil {
 
 	public static void lazySetLong(long pos, long val) {
 		unsafe.putOrderedLong(null, pos, val);
-
 	}
 
 	public static void lazySetInt(long pos, int val) {
 		unsafe.putOrderedInt(null, pos, val);
-
 	}
 
 	/**

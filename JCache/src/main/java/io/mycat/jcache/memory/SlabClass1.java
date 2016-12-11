@@ -6,14 +6,15 @@
  *
  *  备注: 
  */
-package com.jcache.memory;
+package io.mycat.jcache.memory;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
-import com.jcache.setting.Settings;
+import io.mycat.jcache.setting.Settings;
+
 
 /**
  * 
@@ -62,7 +63,7 @@ public class SlabClass1 {
 //			slabs[i].chunkSize = size;
 //			slabs[i].itemCount = Settings.itemSizeMax/size;
 			int itemCount = Settings.slabPageSize/size;
-			slabs.add(new Slab(size, itemCount));
+//			slabs.add(new Slab(size, itemCount));
 			size *= Settings.factor;
 			
 			log.info("slab class "+i+": chunk size "+size+" item count "+itemCount);
@@ -71,7 +72,7 @@ public class SlabClass1 {
 		int powerLargest = i; 
 //		slabs[powerLarget].chunkSize = Settings.itemSizeMax;
 //		slabs[powerLarget].itemCount = 1;
-		slabs.add(new Slab(Settings.slabChunkSizeMax, Settings.slabPageSize/Settings.slabChunkSizeMax));
+//		slabs.add(new Slab(Settings.slabChunkSizeMax, Settings.slabPageSize/Settings.slabChunkSizeMax));
 		log.info("slab class "+i+": chunk size "+size+" item count "+1);
 		
 		slabsPreallocate(powerLargest);

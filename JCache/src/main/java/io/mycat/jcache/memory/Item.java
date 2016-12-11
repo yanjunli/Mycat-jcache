@@ -1,12 +1,4 @@
-/*
- *  文件创建时间： 2016年11月29日
- *  文件创建者: tangww
- *  所属工程: JCache
- *  CopyRights Received EMail Dev. Dept. 21CN 
- *
- *  备注: 
- */
-package com.jcache.memory;
+package io.mycat.jcache.memory;
 
 /**
  * 
@@ -16,8 +8,8 @@ package com.jcache.memory;
  *
  */
 public class Item {
-	byte prev;   //记录上一个item的地址,主要用于LRU链和freelist链  
-	byte next;   //记录下一个item的地址,主要用于LRU链和freelist链
+	byte prev;   //记录上一个item的地址,主要用于LRU链和freelist链   这两个属性还有必要？？TODO
+	byte next;   //记录下一个item的地址,主要用于LRU链和freelist链  这两个属性还有必要？？TODO
 	byte hNext;  //记录HashTable的下一个Item的地址 
 	/*
 	 * 最近访问的时间，只有set/add/replace等操作才会更新这个字段

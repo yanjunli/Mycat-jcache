@@ -1,4 +1,4 @@
-package com.jcache.util;
+package io.mycat.jcache.util;
 
 /**
  * item 工具
@@ -128,6 +128,6 @@ public class ItemUtil {
 	 */
 	public static byte getNskey(long addr){
 		return UnSafeUtil.getByte(addr+20);
-	}	
+	}
 
 }

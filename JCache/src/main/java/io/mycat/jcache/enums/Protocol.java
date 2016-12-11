@@ -1,12 +1,4 @@
-/*
- *  文件创建时间： 2016年11月29日
- *  文件创建者: tangww
- *  所属工程: JCache
- *  CopyRights Received EMail Dev. Dept. 21CN 
- *
- *  备注: 
- */
-package com.jcache.enums;
+package io.mycat.jcache.enums;
 
 /**
  * 

@@ -1,4 +1,4 @@
-package com.jcache.memory;
+package io.mycat.jcache.memory;
 
 import java.util.LinkedList;
 

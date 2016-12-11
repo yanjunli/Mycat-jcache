@@ -1,12 +1,12 @@
-package com.jcache.memory;
+package io.mycat.jcache.memory;
 
 import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
 
-import com.jcache.enums.ItemFlags;
-import com.jcache.setting.Settings;
-import com.jcache.util.ItemUtil;
+import io.mycat.jcache.enums.ItemFlags;
+import io.mycat.jcache.setting.Settings;
+import io.mycat.jcache.util.ItemUtil;
 
 /*
  * 
