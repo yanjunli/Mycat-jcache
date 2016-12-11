@@ -20,6 +20,5 @@
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.3" level="project" />
     <orderEntry type="library" name="Maven: com.whalin:Memcached-Java-Client:3.0.0" level="project" />
     <orderEntry type="library" name="Maven: commons-pool:commons-pool:1.5.6" level="project" />
-    <orderEntry type="library" name="Maven: io.mycat.memory:Mycat-Memory:0.0.1-SNAPSHOT" level="project" />
   </component>
 </module>

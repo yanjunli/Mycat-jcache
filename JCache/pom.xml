@@ -17,7 +17,7 @@
 		<!-- finalName>${artifactId}-${version}-${buildNumber}</finalName -->
 		<resources>
 			<resource>
-				<directory>src/main/resources</directory>
+				<directory>ss/main/resources</directory>
 				<excludes>
 					<exclude>**/.svn/**</exclude>
 				</excludes>
@@ -31,7 +31,7 @@
 		</resources>
 		<testResources>
 			<testResource>
-				<directory>src/test/resources</directory>
+				<directory>ss/test/resources</directory>
 				<excludes>
 					<exclude>**/.svn/**</exclude>
 				</excludes>
@@ -110,5 +110,6 @@
   		 <artifactId>log4j</artifactId>
   		 <version>1.2.17</version>
   	</dependency>
+
   </dependencies>
 </project>
