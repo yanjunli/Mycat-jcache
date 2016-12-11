@@ -17,16 +17,13 @@ import com.jcache.setting.Settings;
 
 /**
  * 
- * 类功能描述：
- *
- * <p> 版权所有：21CN.com
- * <p> 未经本公司许可，不得以任何方式复制或使用本程序任何部分 <p>
- * 
- * @author <a href="mailto:tangww@corp.21cn.com">tangww</a>
+ * @author tangww
  * @version 
  * @since 2016年11月29日 
- *
+ * @see SlabPool
+ * 
  */
+@Deprecated
 public class SlabClass1 {
 	Logger log = Logger.getLogger(SlabClass.class);
 	
@@ -104,8 +101,8 @@ public class SlabClass1 {
 		return false;
 	}
 	
-//	public boolean growSlabList(id){
-//		
-//	}
+	public boolean growSlabList(int id){
+		return false;
+	}
 	
 }

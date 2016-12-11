@@ -1,21 +1,25 @@
 package com.jcache.enums;
 
 public enum ItemFlags {
-	ITEM_LINKED(1),
-	ITEM_CAS(2),
-	ITEM_SLABBED(4),
-	ITEM_FETCHED(8),
-	ITEM_ACTIVE(16),
-	ITEM_CHUNKED(32),
-	ITEM_CHUNK(64);
+	ITEM_LINKED((byte)1),
+	ITEM_CAS((byte)2),
+	/* temp */
+	ITEM_SLABBED((byte)4),
+	/* Item was fetched at least once in its lifetime */
+	ITEM_FETCHED((byte)8),
+	/* Appended on fetch, removed on LRU shuffling */
+	ITEM_ACTIVE((byte)16),
+	/* If an item's storage are chained chunks. */
+	ITEM_CHUNKED((byte)32), 
+	ITEM_CHUNK((byte)64);
 	
-	private int flags;
+	private byte flags;
 	
-	private ItemFlags(int flags) {
+	private ItemFlags(byte flags) {
 		this.flags = flags;
 	}
 
-	public int getFlags() {
+	public byte getFlags() {
 		return flags;
 	} 
 }
