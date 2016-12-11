@@ -1,8 +1,14 @@
 package com.jcache.memory;
 
+import java.nio.ByteBuffer;
+
+import org.apache.log4j.Logger;
+
 import com.jcache.enums.ItemFlags;
 import com.jcache.setting.Settings;
 import com.jcache.util.ItemUtil;
+
+/*
  * 
  * @author tangww
  * @author liyanjun
