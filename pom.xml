@@ -54,5 +54,6 @@
   	<modules>
   	    <module>Memory</module>
   		<module>Mcache</module>
-  	</modules>
+		<module>JCache</module>
+	</modules>
 </project>

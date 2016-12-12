@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/JCache/JCache.iml" filepath="$PROJECT_DIR$/JCache/JCache.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JCache/JCache.iml" filepath="$PROJECT_DIR$/JCache/JCache.iml" />
       <module fileurl="file://$PROJECT_DIR$/Mcache/Mcache.iml" filepath="$PROJECT_DIR$/Mcache/Mcache.iml" />
       <module fileurl="file://$PROJECT_DIR$/Memory/Memory.iml" filepath="$PROJECT_DIR$/Memory/Memory.iml" />
       <module fileurl="file://$PROJECT_DIR$/Mycat-jcache.iml" filepath="$PROJECT_DIR$/Mycat-jcache.iml" />

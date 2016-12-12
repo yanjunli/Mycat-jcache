@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.mycat</groupId>
     <artifactId>Mycat-jcache</artifactId>
-    <version>0.0.1-DEV</version>
+    <version>0.0.1-DEV</version> 
   </parent>
   <artifactId>Memory</artifactId>
   <name>Memory</name>
