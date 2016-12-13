@@ -148,8 +148,16 @@ public class ItemUtil {
 	    /* suffix is defined at 40 chars elsewhere.. */
 //	    *nsuffix = (uint8_t) snprintf(suffix, 40, " %u %d\r\n", flags, nbytes - 2);
 //	    return sizeof(item) + nkey + *nsuffix + nbytes;
-//		int nsuffix = UnSafeUtil.;
-		return Settings.ITEM_HEADER_LENGTH + nkey + nbytes;
+		StringBuffer sb = new StringBuffer();
+		sb.append(" ").append(flags).append(" ").append((nbytes-2));
+		String suffixStr = sb.toString();
+		
+		if(suffixStr.length()>40){
+			suffixStr = suffixStr.substring(0, 40);
+		}
+		UnSafeUtil.setBytes(suffix, suffixStr.getBytes(), 0, suffixStr.length());
+		UnSafeUtil.putByte(nsuffix, (byte)suffixStr.length());
+		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
 	}
 
 }
