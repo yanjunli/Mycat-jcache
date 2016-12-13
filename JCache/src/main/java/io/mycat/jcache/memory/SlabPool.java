@@ -28,7 +28,8 @@ public class SlabPool {
 	long mem_limit;     //总内存大小
 	int powerLargest;  //最大 slabclass 数量
 	ByteBuffer[] baseBuf = null;  //预分配内存数组
-	int currByteIndex;  //当前用到了第几个bytebuffer;
+	//yanglinlin 应该是全局可见的
+	volatile  int currByteIndex;  //当前用到了第几个bytebuffer;
 	
 	final AtomicBoolean allocLockStatus = new AtomicBoolean(false);
 	
