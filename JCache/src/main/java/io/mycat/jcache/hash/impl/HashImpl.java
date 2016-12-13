@@ -8,7 +8,7 @@
  */
 package io.mycat.jcache.hash.impl;
 
-import com.jcache.setting.Settings;
+import io.mycat.jcache.setting.Settings;
 import io.mycat.jcache.hash.Hash;
 import io.mycat.jcache.hash.Hash_init;
 import io.mycat.jcache.hash.Hash_func_type;

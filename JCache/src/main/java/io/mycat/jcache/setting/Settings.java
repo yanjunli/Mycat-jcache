@@ -6,9 +6,9 @@
  *
  *  备注: 
  */
-package com.jcache.setting;
+package io.mycat.jcache.setting;
 
-import com.jcache.enums.Protocol;
+import io.mycat.jcache.enums.Protocol;
 
 /**
  * 
