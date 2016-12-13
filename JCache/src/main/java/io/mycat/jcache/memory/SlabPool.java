@@ -1,11 +1,14 @@
 package io.mycat.jcache.memory;
 
-import io.mycat.jcache.enums.ItemFlags;
-import io.mycat.jcache.setting.Settings;
-import io.mycat.jcache.util.ItemUtil;
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.IntStream;
+
 import org.apache.log4j.Logger;
 
-import java.nio.ByteBuffer;
+import io.mycat.jcache.setting.Settings;
+import io.mycat.jcache.util.UnSafeUtil;
+import sun.nio.ch.DirectBuffer;
 
 /*
  * 
@@ -17,30 +20,23 @@ import java.nio.ByteBuffer;
 public class SlabPool {
 	Logger log = Logger.getLogger(SlabPool.class);
 	
-	SlabClass[] slabClassArr;
-	int memBase;
-	int memAlloced;
-	int powerLargest;
-	ByteBuffer baseBuf = null;
+	final SlabClass[] slabClassArr;
+	long memBase;      //当前 bytebuffer  内存首地址
+	long mem_current;  //当前bytebuffer 位置 偏移量   内存首地址
+	long mem_avail;    //当前可用内存
+	long memAlloced;   //已分配内存
+	long mem_limit;     //总内存大小
+	int powerLargest;  //最大 slabclass 数量
+	ByteBuffer[] baseBuf = null;  //预分配内存数组
+	int currByteIndex;  //当前用到了第几个bytebuffer;
+	
+	final AtomicBoolean allocLockStatus = new AtomicBoolean(false);
 	
 	public SlabPool(){
 		this.slabClassArr = new SlabClass[Settings.MAX_NUMBER_OF_SLAB_CLASSES];
 	}
 	
-	public int slabsClassid(int size){
-		int res = Settings.POWER_SMALLEST;
-		if(size <= 0 || size > Settings.itemSizeMax)
-			return 0;
-		while(size > slabClassArr[res].chunkSize){
-			res ++;
-			if(res == powerLargest)
-				return powerLargest;
-		}
-		
-		return res;
-	}
-	
-	public void init(int memLimit){
+	public void init(long memLimit){
 		int size = Settings.chunkSize+Settings.ITEM_HEADER_LENGTH;
 		if(!Settings.prealloc){
 			log.info(" prealloc ? "+Settings.prealloc );
@@ -48,23 +44,46 @@ public class SlabPool {
 		}
 		
 		try{
-			baseBuf = ByteBuffer.allocateDirect(memLimit);
-			memBase = memLimit;
+			
+			if(memLimit<Integer.MAX_VALUE){
+				baseBuf = new ByteBuffer[0];
+				baseBuf[0] = ByteBuffer.allocateDirect((int) memLimit);
+			}else{
+				int bufcount = (int) Math.ceil((memLimit/Integer.MAX_VALUE));
+				int suffixbuff = (int) (memLimit - (Integer.MAX_VALUE*(bufcount-1)));
+				if(suffixbuff<Settings.slabPageSize){  //最后一个大小不足  slabPageSize 时， 不计算
+					suffixbuff = 0;
+				}
+				baseBuf = new ByteBuffer[bufcount];
+				for(int i=0;i<bufcount-1;i++){
+					baseBuf[i] = ByteBuffer.allocateDirect(Integer.MAX_VALUE);
+				}
+				if(bufcount>1&&suffixbuff>0){
+					baseBuf[bufcount-1] = ByteBuffer.allocateDirect(suffixbuff);
+				}
+			}
+			mem_avail = memLimit;
+			mem_limit = memLimit;
+			memBase = ((DirectBuffer) baseBuf[0]).address();
+			mem_current = memBase;
+			
+
 		}catch(Exception e){
 			log.error(" Init allocate direct buffer fail.Will allocate in smaller chunks. For "+e.getMessage(), e);
 			return;
 		}
 		
-		/* 此处留下了第一个没有初始化   magic slab class for storing pages for reassignment see Settings.SLAB_GLOBAL_PAGE_POOL   */
+		/* 此处留下了第一个没有初始化   magic slab class for storing pages for reassignment see Settings.SLAB_GLOBAL_PAGE_POOL 
+		 * 根据配置 分配 slabclass 的数量
+		 */
 		int i = Settings.POWER_SMALLEST;
 		for(; i<Settings.MAX_NUMBER_OF_SLAB_CLASSES-1 && size<=Settings.slabChunkSizeMax/Settings.factor; i++){
+			
 			if(size % Settings.CHUNK_ALIGN_BYTES != 0)
 				size += Settings.CHUNK_ALIGN_BYTES-(size % Settings.CHUNK_ALIGN_BYTES);
 			
-			slabClassArr[i].chunkSize = size;
-			slabClassArr[i].perSlab = Settings.slabPageSize/size;
+			slabClassArr[i] = new SlabClass(size,Settings.slabPageSize/size);
 			size *= Settings.factor;
-
 			log.info("slab class "+i+": chunk size "+size+" item count "+slabClassArr[i].perSlab);
 		}
 		
@@ -99,135 +118,146 @@ public class SlabPool {
 	 */
 	public boolean doSlabsNewSlab(int id){
 		SlabClass slabc = slabClassArr[id];
-		SlabClass globalc = slabClassArr[Settings.SLAB_GLOBAL_PAGE_POOL];
+//		SlabClass globalc = slabClassArr[Settings.SLAB_GLOBAL_PAGE_POOL];
 		int len = (Settings.slabReassign || Settings.slabChunkSizeMax != Settings.slabPageSize) 
 				? Settings.slabPageSize : slabc.chunkSize*slabc.perSlab;
-		if(memBase > 0 && memAlloced+len > memBase && slabc.perSlab > 0 && globalc.perSlab == 0)
+		if(mem_limit > 0 && memAlloced+len > mem_limit && slabc.perSlab > 0 )
+//				&& globalc.perSlab == 0)
 			return false;
 		
-		Slab slab = null;
-		if(grow_slab_list(id)||((slab=getPagefromGlobalPool())==null&&(slab = memoryAllocate(len))==null)){
+		long slab;
+		if(((slab=getPagefromGlobalPool())==0&&(slab = memoryAllocate(len))==0)){
 			log.error("new slab fail from class id "+id);
 			return false;
 		}
 		
-		memoryInitSet(slab.buf);
+		memoryInitSet(slab,(byte)0,len);
 		splitSlabPageInfoFreelist(slab, id);
-
-		/**
-		slabc.slabs.addLast(slab);//PigBrother改
-		//多线程安全问题
-		 * 改变了下面一句代码
-		 */
-		slabc.slabs.add(slab);
-
+		
+		slabc.slab_list.addLast(slab);
 		return true;
 	}
 	
-	public boolean grow_slab_list(int id){
-//	    slabclass_t *p = &slabclass[id];
-//	    if (p->slabs == p->list_size) {
-//	        size_t new_size =  (p->list_size != 0) ? p->list_size * 2 : 16;
-//	        void *new_list = realloc(p->slab_list, new_size * sizeof(void *));
-//	        if (new_list == 0) return 0;
-//	        p->list_size = new_size;
-//	        p->slab_list = new_list;
-//	    }
-//	    return 1;
-		
-		
-		
-		return false;
-	}
-	
 	//将ptr指向的内存空间按第id个slabclass的size进行切分
-	public void splitSlabPageInfoFreelist(Slab slab, int id){
+	public void splitSlabPageInfoFreelist(long slab, int id){
 		SlabClass slabc = slabClassArr[id];
 		//每个slabclass有多个slab,对每个slab按slabclass对应的size进行切分
 		for(int i=0; i<slabc.perSlab; i++){
-			doSlabsFree(slab.allocatChunk(i), 0, id);
+			slabc.doSlabsFree(slab+(i*slabc.chunkSize), 0, id);
 		}
 	}
 	
-	//创建空闲item  
-	public void doSlabsFree(long addr, int size, int id){
-		if(id < Settings.POWER_SMALLEST || id> powerLargest){
-			return;
-		}
-		SlabClass slabc = slabClassArr[id];
-		int it_flags = ItemUtil.getItflags(addr);
-		if((it_flags & ItemFlags.ITEM_CHUNKED.getFlags()) == 0){
-			ItemUtil.setItflags(addr, ItemFlags.ITEM_SLABBED.getFlags());
-			ItemUtil.setSlabsClsid(addr, (byte)id);
-			/**
-			 * PigBrother
-			slabc.sl_curr ++;
-			slabc.requested -= size; //已经申请到的空间数量更新
-
-			还是多线程问题
-			 *改变了下面二句代码
-			 */
-			slabc.sl_curr.incrementAndGet();
-			slabc.requested.addAndGet(-size);
-
-		}else{
-			//doSlabsFreeChunked(item, size, id, slabc);
-		}
+	/**
+	 * TODO  可能被 slab_rebalance_move 使用，暂时放下。
+	 * @param addr
+	 * @param size
+	 * @param id
+	 * @param slabc
+	 */
+	public void doSlabsFreeChunked(long addr,int size,int id,SlabClass slabc){
+		
 	}
 	
 	/* Fast FIFO queue */
-	public Slab getPagefromGlobalPool(){
+	public long getPagefromGlobalPool(){
 		SlabClass slabc = slabClassArr[Settings.SLAB_GLOBAL_PAGE_POOL];
-		if(slabc.slabs.size() < 1){
-			return null;
+		if(slabc==null||slabc.slab_list.size() < 1){
+			return 0;
 		}
-		//PigBrother。
-		//原先是removeLast（） ，slabs 是空的 可以这样  但是 如果是 usedslab就不可以了
-		return slabc.slabs.remove();
+		return slabc.slab_list.removeLast();
 	}
 	
-	public Slab memoryAllocate(int size){
-		Slab slab = null;
-		if(baseBuf == null){
-			ByteBuffer buf = ByteBuffer.allocateDirect(size);
-			slab = new Slab(buf,Settings.slabPageSize, size/Settings.slabPageSize);
-		}else{
-			if(size > (memBase-memAlloced)){
-				return null;
-			}
-			
-			if(size % Settings.CHUNK_ALIGN_BYTES != 0){
-				size += Settings.CHUNK_ALIGN_BYTES - (size % Settings.CHUNK_ALIGN_BYTES);
-			}
-			
-			baseBuf.position(memAlloced);
-			if(size < (memBase-memAlloced)){
-				baseBuf.limit(memAlloced+size);
+	public long memoryAllocate(int size){
+
+//		if(baseBuf == null){
+//			ByteBuffer buf = ByteBuffer.allocateDirect(size);
+//			slab = new Slab(buf,Settings.slabPageSize, size/Settings.slabPageSize);
+//		}else{
+		if(size > (mem_limit-memAlloced)){
+			return 0;
+		}
+		
+		if(size % Settings.CHUNK_ALIGN_BYTES != 0){
+			size += Settings.CHUNK_ALIGN_BYTES - (size % Settings.CHUNK_ALIGN_BYTES);
+		}
+		
+		if((mem_avail - size )>0){ //说明还有空间
+			if((mem_current+size) <= (memBase+Integer.MAX_VALUE)){ //当前bytebuffer 有空间
+				//当期bytebuffer 还有空间
+				mem_current += size;  //当前内存地址 后移 size 位
+				mem_avail -= size;    //可用内存 减少          size
 			}else{
-				baseBuf.limit(memBase);
+				mem_avail -= ((memBase+Integer.MAX_VALUE) - mem_current);  //当前bytebuffer 最后几位被浪费掉了。
+				memBase = ((DirectBuffer) baseBuf[++currByteIndex]).address();
+				mem_current = memBase;
 			}
-			ByteBuffer buf = baseBuf.slice();
-			slab = new Slab(buf,Settings.slabPageSize, size/Settings.slabPageSize);
+			return mem_current;
+		}else{
+			mem_avail = 0;
 		}
 		
 		memAlloced += size;
 		if(log.isInfoEnabled()){
-			log.info("memory allocated "+slab);
+			log.info("memory allocated "+size+" B");
 		}
-		return slab;
+		return mem_current;
 	}
 	
 	
-	public void memoryInitSet(ByteBuffer buf){
-		buf.position(0);
-		buf.limit(buf.capacity());
+	public void memoryInitSet(long addr,byte value,int len){
+		IntStream.range(0, len).forEach(f->{
+			UnSafeUtil.putByte(addr+f, value);
+		});
+	}
+	
+	/**
+	 * Given object size, return id to use when allocating/freeing memory for object
+	 * 0 means error: can't store such a large object
+	 */
+	public int slabsClassid(int size){
+		int res = Settings.POWER_SMALLEST;
+		if(size <= 0 || size > Settings.itemSizeMax)
+			return 0;
+		while(size > slabClassArr[res].chunkSize){
+			res ++;
+			if(res == powerLargest)
+				return powerLargest;
+		}
 		
-		// fill with zeroes to ensure deterministic behavior upon handling 'uninitialized' data
-	    for (int i = 0, n = buf.remaining(); i < n; i++) {
-	    	buf.put(i, (byte) 0);
-	    }
-	    
-	    buf.position(0);
+		return res;
+	}
+	
+	/**
+	 * 获取当前slab 的 总共请求的总byte
+	 * @param slabsClassid
+	 * @return
+	 */
+	public int getRequested(int slabsClassid){
+		SlabClass slabc = slabClassArr[slabsClassid];
+		return slabc.requested.get();
+	}
+	
+	/**
+	 * 分配item，
+	 * @param size
+	 * @param slabsClassid
+	 * @param flags
+	 * @return 返回 item 内存首地址
+	 */
+	public long slabs_alloc(int size,int slabsClassid,int flags){
+		SlabClass slabc = slabClassArr[slabsClassid];
+		return slabc.slabs_alloc(size,flags);
+	}
+	
+	/**
+	 * 释放item
+	 * @param addr
+	 * @param ntotal
+	 * @param slabsClassid
+	 */
+	public void slabs_free(long addr,int ntotal,int slabsClassid){
+		SlabClass slabc = slabClassArr[slabsClassid];
+		slabc.doSlabsFree(addr,ntotal,slabsClassid);
 	}
 	
 }

@@ -1,46 +1,52 @@
 package io.mycat.jcache.memory;
 
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.mycat.jcache.enums.ItemFlags;
+import io.mycat.jcache.util.ItemUtil;
+ 
+	//typedef struct {
+	//    unsigned int size;      /* sizes of items */
+	//    unsigned int perslab;   /* how many items per slab */
+	//
+	//    void *slots;           /* list of item ptrs */
+	//    unsigned int sl_curr;   /* total free items in list */
+	//
+	//    unsigned int slabs;     /* how many slabs were allocated for this class */
+	//
+	//    void **slab_list;       /* array of slab pointers */
+	//    unsigned int list_size; /* size of prev array */
+	//
+	//    size_t requested; /* The number of requested bytes */
+	//} slabclass_t;
 /**
- * 
  * @author tangww
  * @author liyanjun
- * @author PigBrother
  *
  */
 public class SlabClass {
 	
-	int chunkSize;  /* sizes of items  当前的slabclass存储items的总大小  */
+	int chunkSize;  /* sizes of items 每个chunkSize 的大小  */
 
 	int perSlab;    /* perslab 表示每个 slab 可以切分成多少个 chunk, 如果一个 slab 等于1M, 那么就有 perslab = 1M / size . how many items per slab */
 	
 	/**
-	 * 这里存放的是 item 的内存首地址
-	 *
-	 * PigBrother改
-	 * LinkedList 是线程不安全的  后面也没有看见synchronized 以及用Atomic类来 保证原子性
-	 * 故认为要 将 LinkedList --->   LinkedBlockingQueue
+	 * 当前空闲 slots 链表
 	 */
-	LinkedBlockingQueue<Long> freeItems;
+	LinkedList<Long> slots;
+//    BitSet chunkAllocateTrack;
 	
 	/**
-	 * 这个字段和  usedSlabs 字段有什么区别？
+	 * 分配的slab链表  存放每个slab的 首地址
 	 */
-	//TODO 这个字段和  usedSlabs 字段有什么区别？
-	LinkedBlockingQueue<Slab> slabs;
-	
-	/**
-	 * 分配的slab链表
-	 */
-	LinkedBlockingQueue<Slab> usedSlabs;
+	LinkedBlockingQueue<Long> slab_list;
 	
 	/**
 	 * 当前总共剩余多少个空闲的item
 	 * 当sl_curr=0的时候，说明已经没有空闲的item，需要分配一个新的slab（每个1M，可以切割成N多个Item结构）
-	 * 下面的变量 也是 没有原子性   由于 slabclas 一定是 多个操作同时进行的
-	 * 故 在SlabPool里  用 ++  一定会出现 多线程安全问题
 	 */
 	AtomicInteger sl_curr; /* total free items in list */
 	
@@ -59,12 +65,97 @@ public class SlabClass {
 	 * 总共请求的总byte  用于统计
 	 */
 	AtomicInteger requested;  /* The number of requested bytes */
+			
+	final AtomicBoolean allocLockStatus = new AtomicBoolean(false);
 	
 	public SlabClass(int chunkSize, int perSlab){
 		this.chunkSize = chunkSize;
-		this.perSlab = perSlab;
-		slabs = new LinkedBlockingQueue<>();
-		usedSlabs = new LinkedBlockingQueue<>();
-		freeItems = new LinkedBlockingQueue<>();
+		this.perSlab = perSlab;	
+	}	
+	
+	/**
+	 * Allocate object of given length. 0 on error 
+	 * @param ntotal   item 总长度
+	 * @param slabsClassid 
+	 * @param flags 
+	 * @return  item 内存地址
+	 */
+	public long slabs_alloc(int size,int flags){
+		while (!allocLockStatus.compareAndSet(false, true)) {
+		}
+		
+		long addr = 0;
+		
+		try {
+			if(sl_curr.get()==0){
+				return 0;
+			}
+			
+			if(size <= chunkSize){
+				/* fail unless we have space at the end of a recently allocated page,
+		           we have something on our freelist, or we could allocate a new page */
+//				if(slabc.sl_curr==0&&flags!=Settings.SLABS_ALLOC_NO_NEWPAGE){
+//					doSlabsNewSlab(slabsClassid);
+//				}
+				addr = slots.removeFirst();
+				byte it_flags = ItemUtil.getItflags(addr);
+				ItemUtil.setItflags(addr, (byte)(it_flags &~ItemFlags.ITEM_SLABBED.getFlags()));
+				sl_curr.decrementAndGet();
+			}else{
+				 /* Dealing with a chunked item. */
+//				addr = do_slabs_alloc_chunked(size, p, id);
+			}
+			
+			requested.addAndGet(size);
+			return addr;
+		} finally {
+			allocLockStatus.set(false);
+		}
 	}
+	
+	//创建空闲item  
+	public void doSlabsFree(long addr, int size,int id){
+		while (!allocLockStatus.compareAndSet(false, true)) { }
+		
+		try {
+			int it_flags = ItemUtil.getItflags(addr);
+			if((it_flags & ItemFlags.ITEM_CHUNKED.getFlags()) == 0){
+				ItemUtil.setItflags(addr, ItemFlags.ITEM_SLABBED.getFlags());
+				ItemUtil.setSlabsClsid(addr, (byte)id);
+				/**
+				 * PigBrother
+				slabc.sl_curr ++;
+				slabc.requested -= size; //已经申请到的空间数量更新
+
+				还是多线程问题
+				 *改变了下面二句代码
+				 */			
+				sl_curr.incrementAndGet();
+				requested.addAndGet(-size);
+				slots.add(addr);
+
+			}else{
+//				doSlabsFreeChunked(addr, size, id, slabc);
+			}
+		} finally {
+			allocLockStatus.set(false);
+		}
+	}
+
+	public int getChunkSize() {
+		return chunkSize;
+	}
+
+	public void setChunkSize(int chunkSize) {
+		this.chunkSize = chunkSize;
+	}
+
+	public int getPerSlab() {
+		return perSlab;
+	}
+
+	public void setPerSlab(int perSlab) {
+		this.perSlab = perSlab;
+	}
+
 }
