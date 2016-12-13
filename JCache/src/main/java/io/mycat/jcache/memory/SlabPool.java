@@ -1,11 +1,19 @@
-package com.jcache.memory;
-
-import com.jcache.enums.ItemFlags;
-import com.jcache.setting.Settings;
-import org.apache.log4j.Logger;
+package io.mycat.jcache.memory;
 
 import java.nio.ByteBuffer;
 
+import org.apache.log4j.Logger;
+
+import io.mycat.jcache.enums.ItemFlags;
+import io.mycat.jcache.setting.Settings;
+import io.mycat.jcache.util.ItemUtil;
+
+/*
+ * 
+ * @author tangww
+ * @author liyanjun
+ *
+ */
 public class SlabPool {
 	Logger log = Logger.getLogger(SlabPool.class);
 	
@@ -33,7 +41,7 @@ public class SlabPool {
 	}
 	
 	public void init(int memLimit){
-		int size = Settings.chunkSize+32;
+		int size = Settings.chunkSize+Settings.ITEM_HEADER_LENGTH;
 		if(!Settings.prealloc){
 			log.info(" prealloc ? "+Settings.prealloc );
 			return;
@@ -47,7 +55,7 @@ public class SlabPool {
 			return;
 		}
 		
-		//此处留下了第一个没有初始化
+		/* 此处留下了第一个没有初始化   magic slab class for storing pages for reassignment see Settings.SLAB_GLOBAL_PAGE_POOL   */
 		int i = Settings.POWER_SMALLEST;
 		for(; i<Settings.MAX_NUMBER_OF_SLAB_CLASSES-1 && size<=Settings.slabChunkSizeMax/Settings.factor; i++){
 			if(size % Settings.CHUNK_ALIGN_BYTES != 0)
@@ -56,7 +64,7 @@ public class SlabPool {
 			slabClassArr[i].chunkSize = size;
 			slabClassArr[i].perSlab = Settings.slabPageSize/size;
 			size *= Settings.factor;
-			
+
 			log.info("slab class "+i+": chunk size "+size+" item count "+slabClassArr[i].perSlab);
 		}
 		
@@ -65,9 +73,14 @@ public class SlabPool {
 		slabClassArr[powerLargest].perSlab = Settings.slabPageSize/Settings.slabChunkSizeMax;
 		log.info("slab class "+i+": chunk size "+size+" item count "+slabClassArr[powerLargest].perSlab);
 		
+		/* 预分配slab 在 slabclasss 中 */
 		slabsPreallocate(powerLargest);
 	}
 	
+	/**
+	 * 预分配slab 在 slabclasss 中 
+	 * @param slabCount
+	 */
 	public void slabsPreallocate(int slabCount){
 		int prealloc = 0;
 		for(int i=Settings.POWER_SMALLEST; i<Settings.MAX_NUMBER_OF_SLAB_CLASSES; i++){
@@ -81,6 +94,9 @@ public class SlabPool {
 		}
 	}
 	
+	/**
+	 * 
+	 */
 	public boolean doSlabsNewSlab(int id){
 		SlabClass slabc = slabClassArr[id];
 		SlabClass globalc = slabClassArr[Settings.SLAB_GLOBAL_PAGE_POOL];
@@ -89,9 +105,8 @@ public class SlabPool {
 		if(memBase > 0 && memAlloced+len > memBase && slabc.perSlab > 0 && globalc.perSlab == 0)
 			return false;
 		
-		Slab gslab = getPagefromGlobalPool();
-		Slab slab = memoryAllocate(len);
-		if(gslab == null && slab == null){
+		Slab slab = null;
+		if(grow_slab_list(id)||((slab=getPagefromGlobalPool())==null&&(slab = memoryAllocate(len))==null)){
 			log.error("new slab fail from class id "+id);
 			return false;
 		}
@@ -104,33 +119,49 @@ public class SlabPool {
 		return true;
 	}
 	
+	public boolean grow_slab_list(int id){
+//	    slabclass_t *p = &slabclass[id];
+//	    if (p->slabs == p->list_size) {
+//	        size_t new_size =  (p->list_size != 0) ? p->list_size * 2 : 16;
+//	        void *new_list = realloc(p->slab_list, new_size * sizeof(void *));
+//	        if (new_list == 0) return 0;
+//	        p->list_size = new_size;
+//	        p->slab_list = new_list;
+//	    }
+//	    return 1;
+		
+		
+		
+		return false;
+	}
+	
 	//将ptr指向的内存空间按第id个slabclass的size进行切分
 	public void splitSlabPageInfoFreelist(Slab slab, int id){
 		SlabClass slabc = slabClassArr[id];
-		
 		//每个slabclass有多个slab,对每个slab按slabclass对应的size进行切分
 		for(int i=0; i<slabc.perSlab; i++){
-			doSlabsFree(slab.items.get(i), 0, id);
+			doSlabsFree(slab.allocatChunk(i), 0, id);
 		}
 	}
 	
 	//创建空闲item  
-	public void doSlabsFree(Item item, int size, int id){
+	public void doSlabsFree(long addr, int size, int id){
 		if(id < Settings.POWER_SMALLEST || id> powerLargest){
 			return;
 		}
-		
 		SlabClass slabc = slabClassArr[id];
-		if((item.it_flags & ItemFlags.ITEM_CHUNKED.getFlags()) == 0){
-			item.it_flags = ItemFlags.ITEM_SLABBED.getFlags();
-			item.slabsClsid = id;
+		int it_flags = ItemUtil.getItflags(addr);
+		if((it_flags & ItemFlags.ITEM_CHUNKED.getFlags()) == 0){
+			ItemUtil.setItflags(addr, ItemFlags.ITEM_SLABBED.getFlags());
+			ItemUtil.setSlabsClsid(addr, (byte)id);
+			slabc.sl_curr ++;
 			slabc.requested -= size; //已经申请到的空间数量更新 
-			slabc.freeItems.addFirst(item);
 		}else{
 			//doSlabsFreeChunked(item, size, id, slabc);
 		}
 	}
 	
+	/* Fast FIFO queue */
 	public Slab getPagefromGlobalPool(){
 		SlabClass slabc = slabClassArr[Settings.SLAB_GLOBAL_PAGE_POOL];
 		if(slabc.slabs.size() < 1){
@@ -144,8 +175,7 @@ public class SlabPool {
 		Slab slab = null;
 		if(baseBuf == null){
 			ByteBuffer buf = ByteBuffer.allocateDirect(size);
-			slab = new Slab(Settings.slabPageSize, size/Settings.slabPageSize);
-			slab.buf = buf;
+			slab = new Slab(buf,Settings.slabPageSize, size/Settings.slabPageSize);
 		}else{
 			if(size > (memBase-memAlloced)){
 				return null;
@@ -162,12 +192,13 @@ public class SlabPool {
 				baseBuf.limit(memBase);
 			}
 			ByteBuffer buf = baseBuf.slice();
-			slab = new Slab(Settings.slabPageSize, size/Settings.slabPageSize);
-			slab.buf = buf;
+			slab = new Slab(buf,Settings.slabPageSize, size/Settings.slabPageSize);
 		}
 		
 		memAlloced += size;
-		log.info("memory allocated "+slab);
+		if(log.isInfoEnabled()){
+			log.info("memory allocated "+slab);
+		}
 		return slab;
 	}
 	

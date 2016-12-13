@@ -6,27 +6,25 @@
  *
  *  备注: 
  */
-package com.jcache.memory;
+package io.mycat.jcache.memory;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
-import com.jcache.setting.Settings;
+import io.mycat.jcache.setting.Settings;
+
 
 /**
  * 
- * 类功能描述：
- *
- * <p> 版权所有：21CN.com
- * <p> 未经本公司许可，不得以任何方式复制或使用本程序任何部分 <p>
- * 
- * @author <a href="mailto:tangww@corp.21cn.com">tangww</a>
+ * @author tangww
  * @version 
  * @since 2016年11月29日 
- *
+ * @see SlabPool
+ * 
  */
+@Deprecated
 public class SlabClass1 {
 	Logger log = Logger.getLogger(SlabClass.class);
 	
@@ -65,7 +63,7 @@ public class SlabClass1 {
 //			slabs[i].chunkSize = size;
 //			slabs[i].itemCount = Settings.itemSizeMax/size;
 			int itemCount = Settings.slabPageSize/size;
-			slabs.add(new Slab(size, itemCount));
+//			slabs.add(new Slab(size, itemCount));
 			size *= Settings.factor;
 			
 			log.info("slab class "+i+": chunk size "+size+" item count "+itemCount);
@@ -74,7 +72,7 @@ public class SlabClass1 {
 		int powerLargest = i; 
 //		slabs[powerLarget].chunkSize = Settings.itemSizeMax;
 //		slabs[powerLarget].itemCount = 1;
-		slabs.add(new Slab(Settings.slabChunkSizeMax, Settings.slabPageSize/Settings.slabChunkSizeMax));
+//		slabs.add(new Slab(Settings.slabChunkSizeMax, Settings.slabPageSize/Settings.slabChunkSizeMax));
 		log.info("slab class "+i+": chunk size "+size+" item count "+1);
 		
 		slabsPreallocate(powerLargest);
@@ -104,8 +102,8 @@ public class SlabClass1 {
 		return false;
 	}
 	
-//	public boolean growSlabList(id){
-//		
-//	}
+	public boolean growSlabList(int id){
+		return false;
+	}
 	
 }
