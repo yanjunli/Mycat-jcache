@@ -100,6 +100,7 @@ public class SlabClass {
 				addr = slots.removeFirst();
 				byte it_flags = ItemUtil.getItflags(addr);
 				ItemUtil.setItflags(addr, (byte)(it_flags &~ItemFlags.ITEM_SLABBED.getFlags()));
+				ItemUtil.setRefCount(addr,(short)1);
 				sl_curr.decrementAndGet();
 			}else{
 				 /* Dealing with a chunked item. */
