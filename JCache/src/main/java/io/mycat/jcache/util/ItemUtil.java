@@ -85,6 +85,11 @@ public class ItemUtil {
 	public static short getRefCount(long addr){
 		return UnSafeUtil.getShort(addr+15);
 	}
+
+
+	public  static void setRefCount(long addr,short value){
+		UnSafeUtil.putShort(addr+15,value);
+	}
 	
 	/**
 	 * which slab class we're in 标记item属于哪个slabclass下
@@ -105,7 +110,8 @@ public class ItemUtil {
 	 * @return
 	 */
 	public static byte getItflags(long addr){
-		return UnSafeUtil.getByte(addr+18);
+		//return UnSafeUtil.getByte(addr+18);
+		return UnSafeUtil.getByteVolatile(addr+18);
 	}
 	
 	public static void setItflags(long addr,byte flags){
