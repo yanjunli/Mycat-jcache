@@ -134,7 +134,7 @@ public class SlabPool {
 		memoryInitSet(slab,(byte)0,len);
 		splitSlabPageInfoFreelist(slab, id);
 		
-		slabc.slab_list.addLast(slab);
+		slabc.slab_list.add(slab);
 		return true;
 	}
 	
@@ -164,7 +164,9 @@ public class SlabPool {
 		if(slabc==null||slabc.slab_list.size() < 1){
 			return 0;
 		}
-		return slabc.slab_list.removeLast();
+		//PigBrother。
+		//原先是removeLast（） ，slabs 是空的 可以这样  但是 如果是 usedslab就不可以了
+		return slabc.slab_list.remove();
 	}
 	
 	public long memoryAllocate(int size){
