@@ -7,6 +7,7 @@ package io.mycat.jcache.memory;
  * @since 2016年11月29日 
  *
  */
+@Deprecated
 public class Item {
 	byte prev;   //记录上一个item的地址,主要用于LRU链和freelist链   这两个属性还有必要？？TODO
 	byte next;   //记录下一个item的地址,主要用于LRU链和freelist链  这两个属性还有必要？？TODO
