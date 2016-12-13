@@ -73,4 +73,5 @@ public class Settings {
 	public static int POWER_LARGEST = 256;
 	public static int CHUNK_ALIGN_BYTES = 8;
 	public static int SLAB_GLOBAL_PAGE_POOL = 0; /* magic slab class for storing pages for reassignment */
+	public static String hash_algorithm; //PigBrother hash algorithm
 }

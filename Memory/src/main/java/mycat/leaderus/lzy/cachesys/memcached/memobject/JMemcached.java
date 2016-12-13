@@ -1,8 +1,6 @@
 package mycat.leaderus.lzy.cachesys.memcached.memobject;
 
-import mycat.leaderus.lzy.cachesys.memcache_v5.Results;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ResultsWithCAS;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReturnStatus;
+
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
