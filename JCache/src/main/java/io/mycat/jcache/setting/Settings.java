@@ -12,8 +12,12 @@ import io.mycat.jcache.enums.Protocol;
 
 /**
  * 
- * @author tangww
- * @author liyanjun
+ * 类功能描述：TODO
+ *
+ * <p> 版权所有：21CN.com
+ * <p> 未经本公司许可，不得以任何方式复制或使用本程序任何部分 <p>
+ * 
+ * @author <a href="mailto:tangww@corp.21cn.com">tangww</a>
  * @version newEDM
  * @since 2016年11月29日 
  *
@@ -69,5 +73,6 @@ public class Settings {
 	public static int POWER_LARGEST = 256;
 	public static int CHUNK_ALIGN_BYTES = 8;
 	public static int SLAB_GLOBAL_PAGE_POOL = 0; /* magic slab class for storing pages for reassignment */
+	public static String hash_algorithm; //PigBrother hash algorithm
 	public static int ITEM_HEADER_LENGTH = 23;   /* item header length */
 }

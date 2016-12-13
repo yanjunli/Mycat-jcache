@@ -1,17 +1,17 @@
 package io.mycat.jcache.memory;
 
-import java.nio.ByteBuffer;
-
-import org.apache.log4j.Logger;
-
 import io.mycat.jcache.enums.ItemFlags;
 import io.mycat.jcache.setting.Settings;
 import io.mycat.jcache.util.ItemUtil;
+import org.apache.log4j.Logger;
+
+import java.nio.ByteBuffer;
 
 /*
  * 
  * @author tangww
  * @author liyanjun
+ * @author PigBrother
  *
  */
 public class SlabPool {
@@ -113,9 +113,14 @@ public class SlabPool {
 		
 		memoryInitSet(slab.buf);
 		splitSlabPageInfoFreelist(slab, id);
-		
-		slabc.slabs.addLast(slab);
-		
+
+		/**
+		slabc.slabs.addLast(slab);//PigBrother改
+		//多线程安全问题
+		 * 改变了下面一句代码
+		 */
+		slabc.slabs.add(slab);
+
 		return true;
 	}
 	
@@ -154,8 +159,17 @@ public class SlabPool {
 		if((it_flags & ItemFlags.ITEM_CHUNKED.getFlags()) == 0){
 			ItemUtil.setItflags(addr, ItemFlags.ITEM_SLABBED.getFlags());
 			ItemUtil.setSlabsClsid(addr, (byte)id);
+			/**
+			 * PigBrother
 			slabc.sl_curr ++;
-			slabc.requested -= size; //已经申请到的空间数量更新 
+			slabc.requested -= size; //已经申请到的空间数量更新
+
+			还是多线程问题
+			 *改变了下面二句代码
+			 */
+			slabc.sl_curr.incrementAndGet();
+			slabc.requested.addAndGet(-size);
+
 		}else{
 			//doSlabsFreeChunked(item, size, id, slabc);
 		}
@@ -167,8 +181,9 @@ public class SlabPool {
 		if(slabc.slabs.size() < 1){
 			return null;
 		}
-		
-		return slabc.slabs.removeLast();
+		//PigBrother。
+		//原先是removeLast（） ，slabs 是空的 可以这样  但是 如果是 usedslab就不可以了
+		return slabc.slabs.remove();
 	}
 	
 	public Slab memoryAllocate(int size){
