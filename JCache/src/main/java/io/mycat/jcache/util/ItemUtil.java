@@ -16,11 +16,11 @@ public class ItemUtil {
 	 * @return
 	 */
 	public static byte getPrev(long addr){
-		return UnSafeUtil.getByte(addr);
+		return UnSafeUtil.getByteVolatile(addr);
 	}
 	
 	public static void setPrev(long addr,byte prev){
-		UnSafeUtil.putByte(addr, prev);
+		UnSafeUtil.putByteVolatile(addr, prev);
 	}
 	
 	/**
@@ -147,7 +147,7 @@ public class ItemUtil {
 	public static int item_make_header(byte nkey,int flags,int nbytes,long suffix,long nsuffix){
 	    /* suffix is defined at 40 chars elsewhere.. */
 //	    *nsuffix = (uint8_t) snprintf(suffix, 40, " %u %d\r\n", flags, nbytes - 2);
-//	    return sizeof(item) + nkey + *nsuffix + nbytes; 
+//	    return sizeof(item) + nkey + *nsuffix + nbytes;
 		StringBuffer sb = new StringBuffer();
 		sb.append(" ").append(flags).append(" ").append((nbytes-2));
 		String suffixStr = sb.toString();
