@@ -1,5 +1,7 @@
 package io.mycat.jcache.items;
 
+import io.mycat.jcache.context.JcacheContext;
+
 /**
  * 
  * 
@@ -7,6 +9,12 @@ package io.mycat.jcache.items;
  *
  */
 public class ItemsAccessManager {
+	
+	JcacheContext context;
+	
+	public ItemsAccessManager(JcacheContext context){
+		this.context = context;
+	}
 
 	/*
 	 * Returns an item if it hasn't been marked as expired,
