@@ -7,7 +7,7 @@ import io.mycat.jcache.enums.Protocol;
  * @author 
  *
  */
-public final class McacheGlobalConfig {
+public final class JcacheGlobalConfig {
 	
 	/**
 	 * 默认端口

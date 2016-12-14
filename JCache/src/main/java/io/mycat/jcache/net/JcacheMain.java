@@ -14,7 +14,7 @@ import io.mycat.jcache.net.strategy.RoundRobinStrategy;
  * 
  *@author liyanjun
  */
-public class McacheMain 
+public class JcacheMain 
 {
 	/**
 	 * 主线程 将新连接分派给 reactor 的策略
@@ -30,11 +30,11 @@ public class McacheMain
     	 * 后期可能变更为从环境变量获取
     	 */
     	ConfigLoader.loadProperties(null);
-    	int port = ConfigLoader.getIntProperty("port",McacheGlobalConfig.defaultPort);
-    	int poolsize = ConfigLoader.getIntProperty("reactor.pool.size",McacheGlobalConfig.defaulePoolSize);
-    	String bindIp = ConfigLoader.getStringProperty("reactor.pool.bindIp", McacheGlobalConfig.defaultPoolBindIp);
-    	String reaStrategy = ConfigLoader.getStringProperty("reactor.pool.selectStrategy", McacheGlobalConfig.defaultReactorSelectStrategy);
-    	int backlog = ConfigLoader.getIntProperty("acceptor.max_connect_num", McacheGlobalConfig.defaultMaxAcceptNum);
+    	int port = ConfigLoader.getIntProperty("port",JcacheGlobalConfig.defaultPort);
+    	int poolsize = ConfigLoader.getIntProperty("reactor.pool.size",JcacheGlobalConfig.defaulePoolSize);
+    	String bindIp = ConfigLoader.getStringProperty("reactor.pool.bindIp", JcacheGlobalConfig.defaultPoolBindIp);
+    	String reaStrategy = ConfigLoader.getStringProperty("reactor.pool.selectStrategy", JcacheGlobalConfig.defaultReactorSelectStrategy);
+    	int backlog = ConfigLoader.getIntProperty("acceptor.max_connect_num", JcacheGlobalConfig.defaultMaxAcceptNum);
     	
     	
     	NIOReactorPool reactorPool = new NIOReactorPool(poolsize,reactorStrategy.get(ReactorSelectEnum.valueOf(reaStrategy)));
@@ -52,6 +52,6 @@ public class McacheMain
     		protStr = "negotiating";
     	}
 
-    	McacheGlobalConfig.prot = Protocol.valueOf(protStr);
+    	JcacheGlobalConfig.prot = Protocol.valueOf(protStr);
     }
 }
