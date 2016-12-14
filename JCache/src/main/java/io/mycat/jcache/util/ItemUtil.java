@@ -1,5 +1,7 @@
 package io.mycat.jcache.util;
 
+import io.mycat.jcache.setting.Settings;
+
 /**
  * item 工具
  * @author liyanjun
@@ -134,6 +136,34 @@ public class ItemUtil {
 	 */
 	public static byte getNskey(long addr){
 		return UnSafeUtil.getByte(addr+20);
+	}
+	
+	/**
+	 * Generates the variable-sized part of the header for an object.
+	 *
+	 * key     - The key
+	 * nkey    - The length of the key
+	 * flags   - key flags
+	 * nbytes  - Number of bytes to hold value and addition CRLF terminator
+	 * suffix  - Buffer for the "VALUE" line suffix (flags, size).
+	 * nsuffix - The length of the suffix is stored here.
+	 *
+	 * Returns the total size of the header.
+	 */	
+	public static int item_make_header(byte nkey,int flags,int nbytes,long suffix,long nsuffix){
+	    /* suffix is defined at 40 chars elsewhere.. */
+//	    *nsuffix = (uint8_t) snprintf(suffix, 40, " %u %d\r\n", flags, nbytes - 2);
+//	    return sizeof(item) + nkey + *nsuffix + nbytes;
+		StringBuffer sb = new StringBuffer();
+		sb.append(" ").append(flags).append(" ").append((nbytes-2));
+		String suffixStr = sb.toString();
+		
+		if(suffixStr.length()>40){
+			suffixStr = suffixStr.substring(0, 40);
+		}
+		UnSafeUtil.setBytes(suffix, suffixStr.getBytes(), 0, suffixStr.length());
+		UnSafeUtil.putByte(nsuffix, (byte)suffixStr.length());
+		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
 	}
 
 }

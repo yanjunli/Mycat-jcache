@@ -149,7 +149,8 @@ public class SlabPool {
 	}
 	
 	/**
-	 * TODO  可能被 slab_rebalance_move 使用，暂时放下。
+	 * TODO  可能被 slab_rebalance_move 使用，
+	 *       在释放chunk 的时候，也会被调用。 暂时放下。
 	 * @param addr
 	 * @param size
 	 * @param id
