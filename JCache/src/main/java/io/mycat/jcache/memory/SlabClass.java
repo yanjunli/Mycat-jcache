@@ -33,6 +33,9 @@ public class SlabClass {
 
 	int perSlab;    /* perslab 表示每个 slab 可以切分成多少个 chunk, 如果一个 slab 等于1M, 那么就有 perslab = 1M / size . how many items per slab */
 	
+	
+	LinkedList<Long> used;  /* 已经分配出去的item 链表*/
+	
 	/**
 	 * 当前空闲 slots 链表
 	 */

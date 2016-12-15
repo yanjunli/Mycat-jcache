@@ -15,7 +15,7 @@ public class UnSafeUtil {
 	public static final int BYTE_ARRAY_OFFSET;
 	
 	static{
-		try {
+		try { 
 			Field f = Unsafe.class.getDeclaredField("theUnsafe");
 			f.setAccessible(true);
 			unsafe = (Unsafe) f.get(null);
