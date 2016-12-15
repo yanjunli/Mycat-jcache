@@ -340,6 +340,7 @@ public class ItemUtil {
 	}
 	
 	/**
+	 * 获取key 开始地址
 	 * ITEM_key(item) (((char*)&((item)->data)) + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
 	 * @param addr
 	 * @return
@@ -349,6 +350,7 @@ public class ItemUtil {
 	}
 
 	/**
+	 * 获取 suffix 开始地址
 	 * ITEM_suffix(item) ((char*) &((item)->data) + (item)->nkey + 1 + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
 	 * 获取 suffix 开始地址
 	 * @param addr
@@ -359,6 +361,7 @@ public class ItemUtil {
 	}
 	
 	/**
+	 * 获取data 开始地址
 	 * ((char*) &((item)->data) + (item)->nkey + 1 + (item)->nsuffix + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
 	 * @param addr
 	 * @return
@@ -368,6 +371,7 @@ public class ItemUtil {
 	}
 	
 	/**
+	 * 获取ntotal
 	 * (sizeof(struct _stritem) + (item)->nkey + 1 + (item)->nsuffix + (item)->nbytes + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
 	 * @param addr
 	 * @return
