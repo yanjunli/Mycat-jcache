@@ -93,7 +93,7 @@ public class ItemUtil {
 	 * @param //item
 	 * @return
 	 */
-	public static int getFlushTime(long addr){
+	public static long getTime(long addr){
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+3);
 		return UnSafeUtil.getInt(addr+24);
