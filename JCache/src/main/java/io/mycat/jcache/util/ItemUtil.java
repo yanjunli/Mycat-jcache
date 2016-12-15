@@ -92,7 +92,7 @@ public class ItemUtil {
 	 * @param //item
 	 * @return
 	 */
-	public static int getFlushTime(long addr){
+	public static long getTime(long addr){
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+3);
 		return UnSafeUtil.getInt(addr+24);
@@ -120,7 +120,7 @@ public class ItemUtil {
 	public static int getNbytes(long addr){
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+11);
-		return UnSafeUtil.getInt(addr+36);
+		return UnSafeUtil.getInt(addr+40);
 	}
 	
 	/**
@@ -132,7 +132,7 @@ public class ItemUtil {
 	public static short getRefCount(long addr){
 		//PigBrother
 		//return UnSafeUtil.getShort(addr+15);
-		return UnSafeUtil.getShort(addr+40);
+		return UnSafeUtil.getShort(addr+44);
 	}
 	
 	/**
@@ -143,13 +143,13 @@ public class ItemUtil {
 	public static byte getSlabsClsid(long addr){
 		//PigBrother
 		//return UnSafeUtil.getByte(addr+17);
-		return UnSafeUtil.getByte(addr+42);
+		return UnSafeUtil.getByte(addr+46);
 	}
 	
 	public static void setSlabsClsid(long addr,byte clsid){
 		// PigBrother
 		// /UnSafeUtil.putByte(addr+17, clsid);
-		UnSafeUtil.putByte(addr+42, clsid);
+		UnSafeUtil.putByte(addr+46, clsid);
 	}
 	
 	/**
@@ -161,13 +161,13 @@ public class ItemUtil {
 		// PigBrother
 		// 这个memcached里 是一个int  用 byte表示是否够了？
 		// /return UnSafeUtil.getByte(addr+18);
-		return UnSafeUtil.getByte(addr+43);
+		return UnSafeUtil.getByte(addr+47);
 	}
 	
 	public static void setItflags(long addr,byte flags){
 		// PigBrother
 		//UnSafeUtil.putByte(addr+18,flags);
-		UnSafeUtil.putByte(addr+43,flags);
+		UnSafeUtil.putByte(addr+47,flags);
 	}
 	
 	/**
@@ -178,7 +178,7 @@ public class ItemUtil {
 	public static byte getNsuffix(long addr){
 		// PigBrother
 		//return UnSafeUtil.getByte(addr+19);
-		return UnSafeUtil.getByte(addr+43);
+		return UnSafeUtil.getByte(addr+48);
 	}
 	
 	/**
@@ -189,8 +189,17 @@ public class ItemUtil {
 	public static byte getNskey(long addr){
 		// PigBrother
 		//return UnSafeUtil.getByte(addr+20);
-		return UnSafeUtil.getByte(addr+44);
+		return UnSafeUtil.getByte(addr+49);
 	}
+	
+	
+	public static long getCAS(long addr){
+		return UnSafeUtil.getLong(addr+50);
+	}
+	
+//	public static long getCAS(long addr){
+//		return UnSafeUtil.getLong(addr+49);
+//	}
 	
 	/**
 	 * Generates the variable-sized part of the header for an object.
