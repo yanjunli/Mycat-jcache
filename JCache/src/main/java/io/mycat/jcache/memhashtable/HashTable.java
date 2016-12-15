@@ -11,6 +11,7 @@ package io.mycat.jcache.memhashtable;
 import io.mycat.jcache.hash.Hash;
 import io.mycat.jcache.hash.Hash_func_type;
 import io.mycat.jcache.hash.impl.HashImpl;
+import io.mycat.jcache.util.ItemUtil;
 
 import java.nio.ByteBuffer;
 
@@ -26,12 +27,13 @@ public class HashTable {
         }
     }
 
-    public static long find(String key, long ... key_attributes){
-        long  index = cached.getLong((int)hash.hash(key)&0xfffffff);
-        if(index != -1){
-            return 0;
-        }else{
-            return -1;//调用者需做处理  -1 等于 Store_item_type.NOT_FOUND
-        }
+    public static long find(String key, long item) {
+        long index = cached.getLong((int) hash.hash(key) & 0xfffffff);
+        do {
+            if (ItemUtil.getKey(index).equals(key)) {
+                return index;
+            }
+        } while ((index = ItemUtil.getHNext(index)) != -1);
+        return -1; //调用者需做处理  -1 等于 Store_item_type.NOT_FOUND
     }
 }

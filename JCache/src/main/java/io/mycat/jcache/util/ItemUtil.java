@@ -8,6 +8,7 @@ import io.mycat.jcache.setting.Settings;
  * @author PigBrother
  * bytebuffer 组织形式， header 和 data 部分。
  * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,CAS,key,suffix,value
+ * 0    8    16    24        32      40     44       46         47       48      49    50  58  58+key
  */
 public class ItemUtil {
 	
@@ -120,19 +121,20 @@ public class ItemUtil {
 	public static int getNbytes(long addr){
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+11);
-		return UnSafeUtil.getInt(addr+36);
+		return UnSafeUtil.getInt(addr+40);
 	}
 	
 	/**
 	 * 引用的次数。通过这个引用的次数，可以判断item是否被其它的线程在操作中。
 	 * 也可以通过refcount来判断当前的item是否可以被删除，只有refcount -1 = 0的时候才能被删除  
-	 * @param //item
+	 * @param //
+	 * item
 	 * @return
 	 */
 	public static short getRefCount(long addr){
 		//PigBrother
 		//return UnSafeUtil.getShort(addr+15);
-		return UnSafeUtil.getShort(addr+40);
+		return UnSafeUtil.getShort(addr+44);
 	}
 	
 	/**
@@ -143,13 +145,13 @@ public class ItemUtil {
 	public static byte getSlabsClsid(long addr){
 		//PigBrother
 		//return UnSafeUtil.getByte(addr+17);
-		return UnSafeUtil.getByte(addr+42);
+		return UnSafeUtil.getByte(addr+46);
 	}
 	
 	public static void setSlabsClsid(long addr,byte clsid){
 		// PigBrother
 		// /UnSafeUtil.putByte(addr+17, clsid);
-		UnSafeUtil.putByte(addr+42, clsid);
+		UnSafeUtil.putByte(addr+46, clsid);
 	}
 	
 	/**
@@ -161,13 +163,13 @@ public class ItemUtil {
 		// PigBrother
 		// 这个memcached里 是一个int  用 byte表示是否够了？
 		// /return UnSafeUtil.getByte(addr+18);
-		return UnSafeUtil.getByte(addr+43);
+		return UnSafeUtil.getByte(addr+47);
 	}
 	
 	public static void setItflags(long addr,byte flags){
 		// PigBrother
 		//UnSafeUtil.putByte(addr+18,flags);
-		UnSafeUtil.putByte(addr+43,flags);
+		UnSafeUtil.putByte(addr+47,flags);
 	}
 	
 	/**
@@ -178,7 +180,7 @@ public class ItemUtil {
 	public static byte getNsuffix(long addr){
 		// PigBrother
 		//return UnSafeUtil.getByte(addr+19);
-		return UnSafeUtil.getByte(addr+43);
+		return UnSafeUtil.getByte(addr+48);
 	}
 	
 	/**
@@ -189,9 +191,54 @@ public class ItemUtil {
 	public static byte getNskey(long addr){
 		// PigBrother
 		//return UnSafeUtil.getByte(addr+20);
-		return UnSafeUtil.getByte(addr+44);
+		return UnSafeUtil.getByte(addr+49);
 	}
-	
+	//PigBrother
+	/**
+	 * length of CAS
+	 * @param //item
+	 * @return
+	 */
+	public static long getCAS(long addr){
+		return UnSafeUtil.getLong(addr+50);
+	}
+	//PigBrother
+	/**
+	 * set length of CAS
+	 * @param //item
+	 * @return
+	 */
+	public static void setCAS(long CAS, long addr){
+		UnSafeUtil.putLongVolatile(addr+50,CAS);
+	}
+	//PigBrother
+	/**
+	 * length of key
+	 * @param //item
+	 * @return
+	 */
+	public static String getKey(long addr){
+		byte[] bs = new byte[getNskey(addr)&0xff];
+		for (int i = 0; i < bs.length; i++) {
+			bs[i]=UnSafeUtil.getByte(addr+58+i);
+		}
+		return new String(bs);
+	}
+	//PigBrother
+	/**
+	 * set length of CAS
+	 * @param //item
+	 * @return
+	 */
+	public static void setKey(byte[] key_bytes, long addr){
+		if(key_bytes.length!=(getNskey(addr)&0xff)){
+			throw new RuntimeException("Error, NSkey's values != key_bytes.length");
+		}
+		for (int i = 0; i < key_bytes.length; i++) {
+			UnSafeUtil.putByte(addr+i+58,key_bytes[i]);
+		}
+	}
+
 	/**
 	 * Generates the variable-sized part of the header for an object.
 	 *
