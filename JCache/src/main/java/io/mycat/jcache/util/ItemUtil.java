@@ -5,6 +5,7 @@ import io.mycat.jcache.setting.Settings;
 /**
  * item 工具
  * @author liyanjun
+ * @author PigBrother
  * bytebuffer 组织形式， header 和 data 部分。
  * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,CAS,key,suffix,value
  */
@@ -15,25 +16,51 @@ public class ItemUtil {
 	 * @param item
 	 * @return
 	 */
-	public static byte getPrev(long addr){
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+     */
+	public static long getPrev(long addr){
 		return UnSafeUtil.getByteVolatile(addr);
 	}
-	
-	public static void setPrev(long addr,byte prev){
-		UnSafeUtil.putByteVolatile(addr, prev);
+
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+	 */
+	public static void setPrev(long addr,long prev){
+		//This place used Volatile is not necessary.
+		//after codes didn't  use   Volatile
+		// setNest()
+		UnSafeUtil.putLongVolatile(addr, prev);
 	}
 	
 	/**
 	 * 记录下一个item的地址,主要用于LRU链和freelist链
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
-	public static byte getNext(long addr){
-		return UnSafeUtil.getByte(addr+1);
+	public static long getNext(long addr){
+		//return UnSafeUtil.getByte(addr+1);
+		return UnSafeUtil.getLong(addr+8);
 	}
-	
-	public static void setNext(long addr,byte next){
-		UnSafeUtil.putByte(addr+1, next);
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+	 */
+	public static void setNext(long addr,long next){
+		///UnSafeUtil.putByte(addr+1, next);   old
+		//PigBrother
+		UnSafeUtil.putLong(addr+8, next);
 	}
 	
 	/**
@@ -41,20 +68,34 @@ public class ItemUtil {
 	 * @param item
 	 * @return
 	 */
-	public static byte getHNext(long addr){
-		return UnSafeUtil.getByte(addr+2);
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+	 */
+	public static long getHNext(long addr){
+		//return UnSafeUtil.getByte(addr+2);
+		return UnSafeUtil.getLong(addr+16);
 	}
-	
+	// fixed setHNext(long addr, long next)
+	//PigBrohter
+	public static void setHNext(long addr,long hnext){
+		UnSafeUtil.putLong(addr+16, hnext);
+	}
 	/**
 	          最近访问的时间，只有set/add/replace等操作才会更新这个字段
 	 * 当执行flush命令的时候，需要用这个时间和执行flush命令的时间相比较，来判断是否失效  
 	 * typedef unsigned int rel_time_t;
 	 * Time relative to server start. Smaller than time_t on 64-bit systems. 
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static int getFlushTime(long addr){
-		return UnSafeUtil.getInt(addr+3);
+		//PigBrother
+		//return UnSafeUtil.getInt(addr+3);
+		return UnSafeUtil.getInt(addr+24);
 	}
 	
 	/**
@@ -62,74 +103,93 @@ public class ItemUtil {
 	 * 如果Memcached不能分配新的item的时候，设置为0的item也有可能被LRU淘汰
 	 * typedef unsigned int rel_time_t;
 	 * Time relative to server start. Smaller than time_t on 64-bit systems.
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static long getExpTime(long addr){
-		return UnSafeUtil.getLong(addr+7);
+		//PigBrother
+		//return UnSafeUtil.getLong(addr+7);
+		return UnSafeUtil.getLong(addr+32);
 	}
 	
 	/**
 	 * value数据大小
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static int getNbytes(long addr){
-		return UnSafeUtil.getInt(addr+11);
+		//PigBrother
+		//return UnSafeUtil.getInt(addr+11);
+		return UnSafeUtil.getInt(addr+36);
 	}
 	
 	/**
 	 * 引用的次数。通过这个引用的次数，可以判断item是否被其它的线程在操作中。
 	 * 也可以通过refcount来判断当前的item是否可以被删除，只有refcount -1 = 0的时候才能被删除  
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static short getRefCount(long addr){
-		return UnSafeUtil.getShort(addr+15);
+		//PigBrother
+		//return UnSafeUtil.getShort(addr+15);
+		return UnSafeUtil.getShort(addr+40);
 	}
 	
 	/**
 	 * which slab class we're in 标记item属于哪个slabclass下
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static byte getSlabsClsid(long addr){
-		return UnSafeUtil.getByte(addr+17);
+		//PigBrother
+		//return UnSafeUtil.getByte(addr+17);
+		return UnSafeUtil.getByte(addr+42);
 	}
 	
 	public static void setSlabsClsid(long addr,byte clsid){
-		UnSafeUtil.putByte(addr+17, clsid);
+		// PigBrother
+		// /UnSafeUtil.putByte(addr+17, clsid);
+		UnSafeUtil.putByte(addr+42, clsid);
 	}
 	
 	/**
 	 * ITEM_* above
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static byte getItflags(long addr){
-		return UnSafeUtil.getByte(addr+18);
+		// PigBrother
+		// 这个memcached里 是一个int  用 byte表示是否够了？
+		// /return UnSafeUtil.getByte(addr+18);
+		return UnSafeUtil.getByte(addr+43);
 	}
 	
 	public static void setItflags(long addr,byte flags){
-		UnSafeUtil.putByte(addr+18,flags);
+		// PigBrother
+		//UnSafeUtil.putByte(addr+18,flags);
+		UnSafeUtil.putByte(addr+43,flags);
 	}
 	
 	/**
 	 * length of flags-and-length string
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static byte getNsuffix(long addr){
-		return UnSafeUtil.getByte(addr+19);
+		// PigBrother
+		//return UnSafeUtil.getByte(addr+19);
+		return UnSafeUtil.getByte(addr+43);
 	}
 	
 	/**
 	 * length of flags-and-length string
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static byte getNskey(long addr){
-		return UnSafeUtil.getByte(addr+20);
+		// PigBrother
+		//return UnSafeUtil.getByte(addr+20);
+		return UnSafeUtil.getByte(addr+44);
 	}
 	
 	/**
