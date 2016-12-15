@@ -31,7 +31,7 @@
 	</dependency>
 	  <dependency>
 		  <groupId>io.mycat</groupId>
-		  <artifactId>Memory</artifactId>
+		  <artifactId>JCache</artifactId>
 		  <version>0.0.1-DEV</version>
 	  </dependency>
 	<dependency>
