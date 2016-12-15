@@ -1,16 +1,19 @@
 package io.mycat.jcache.util;
 
+import io.mycat.jcache.enums.ItemFlags;
 import io.mycat.jcache.setting.Settings;
 
 /**
  * item 工具
  * @author liyanjun
  * @author PigBrother
- * bytebuffer 组织形式， header 和 data 部分。
- * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,CAS,key,suffix,value
- * 0    8    16    24        32      40     44       46         47       48      49    50  58  58+key
+ * bytebuffer 组织形式， header 和 data 部分。                                                                                                                                                                       header 部分结束
+ * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,//    CAS,key,suffix,value
+ * 0    8    16    24        32      40     44       46         47       48      49          50  58  58+key
  */
 public class ItemUtil {
+
+	////////////////////////////////// header begin ////////////////////////////////////////////////
 	
 	/**
 	 * 获取 /记录上一个item的地址,主要用于LRU链和freelist链   
@@ -183,6 +186,11 @@ public class ItemUtil {
 		return UnSafeUtil.getByte(addr+48);
 	}
 	
+	
+	public static void setNsuffix(long addr,byte nsuffix){
+		UnSafeUtil.putByte(addr+48,nsuffix);
+	}
+	
 	/**
 	 * length of flags-and-length string
 	 * @param //item
@@ -193,6 +201,18 @@ public class ItemUtil {
 		//return UnSafeUtil.getByte(addr+20);
 		return UnSafeUtil.getByte(addr+49);
 	}
+	
+	
+	public static void setNskey(long addr,byte nkey){
+		UnSafeUtil.putByte(addr+49,nkey);
+	}
+	
+	public static long getHeaderEnd(long addr){
+		return addr + 50;
+	}
+	
+	////////////////////////////////// header end ////////////////////////////////////////////////
+	
 	//PigBrother
 	/**
 	 * length of CAS
@@ -200,7 +220,7 @@ public class ItemUtil {
 	 * @return
 	 */
 	public static long getCAS(long addr){
-		return UnSafeUtil.getLong(addr+50);
+		return UnSafeUtil.getLong(getHeaderEnd(addr));
 	}
 	//PigBrother
 	/**
@@ -209,8 +229,18 @@ public class ItemUtil {
 	 * @return
 	 */
 	public static void setCAS(long CAS, long addr){
-		UnSafeUtil.putLongVolatile(addr+50,CAS);
+		UnSafeUtil.putLongVolatile(getHeaderEnd(addr),CAS);
 	}
+	
+	/**
+	 * ((item)->slabs_clsid & ~(3<<6))
+	 * @param addr
+	 * @return
+	 */
+	public static long ITEM_clsid(long addr){
+		return getSlabsClsid(addr) & ~(3<<6) ;
+	}
+	
 	//PigBrother
 	/**
 	 * length of key
@@ -238,7 +268,49 @@ public class ItemUtil {
 			UnSafeUtil.putByte(addr+i+58,key_bytes[i]);
 		}
 	}
-
+	
+	/**
+	 * 设置 suffix
+	 * @param addr
+	 * @param suffix
+	 */
+	public static void setSuffix(long addr,byte[] suffix){
+		UnSafeUtil.setBytes(ITEM_suffix(addr), suffix, 0, suffix.length);
+	}
+	
+	/**
+	 * 获取suffix
+	 * @param addr
+	 * @return
+	 */
+	public static byte[] getSuffix(long addr){
+		int length = getNsuffix(addr);
+		byte[] data = new byte[length];
+		UnSafeUtil.getBytes(addr, data, (int)ITEM_suffix(addr),length);
+		return data;
+	}
+	
+	/**
+	 * 获取value
+	 * @param addr
+	 * @return
+	 */
+	public static byte[] getValue(long addr){
+		int length = getNbytes(addr);
+		byte[] data = new byte[length];
+		UnSafeUtil.getBytes(addr, data, (int)ITEM_data(addr),length);
+		return data;
+	}
+	
+	/**
+	 * 设置 value
+	 * @param addr
+	 * @param value
+	 */
+	public static void setValue(long addr,byte[] value){
+		UnSafeUtil.setBytes(ITEM_data(addr), value, 0, value.length);
+	}
+	
 	/**
 	 * Generates the variable-sized part of the header for an object.
 	 *
@@ -265,6 +337,44 @@ public class ItemUtil {
 		UnSafeUtil.setBytes(suffix, suffixStr.getBytes(), 0, suffixStr.length());
 		UnSafeUtil.putByte(nsuffix, (byte)suffixStr.length());
 		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+	}
+	
+	/**
+	 * ITEM_key(item) (((char*)&((item)->data)) + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+	 * @param addr
+	 * @return
+	 */
+	public static long ITEM_key(long addr){
+		return getHeaderEnd(addr) + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
+	}
+
+	/**
+	 * ITEM_suffix(item) ((char*) &((item)->data) + (item)->nkey + 1 + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+	 * 获取 suffix 开始地址
+	 * @param addr
+	 * @return
+	 */
+	public static long ITEM_suffix(long addr){
+		return getHeaderEnd(addr) + getNskey(addr) + 1 + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
+	}
+	
+	/**
+	 * ((char*) &((item)->data) + (item)->nkey + 1 + (item)->nsuffix + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+	 * @param addr
+	 * @return
+	 */
+	public static long ITEM_data(long addr){
+		return getHeaderEnd(addr) + getNskey(addr) + 1 + getNsuffix(addr) + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
+	}
+	
+	/**
+	 * (sizeof(struct _stritem) + (item)->nkey + 1 + (item)->nsuffix + (item)->nbytes + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+	 * @param addr
+	 * @return
+	 */
+	public static long ITEM_ntotal(long addr){
+		//TODO 
+		return 0;
 	}
 
 }
