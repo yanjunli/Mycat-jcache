@@ -7,6 +7,7 @@ import io.mycat.jcache.setting.Settings;
  * item 工具
  * @author liyanjun
  * @author PigBrother
+ * @author  yangll
  * bytebuffer 组织形式， header 和 data 部分。                                                                                                                                                                       header 部分结束
  * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,//    CAS,key,suffix,value
  * 0    8    16    24        32      40     44       46         47       48      49          50  58  58+key
@@ -63,6 +64,15 @@ public class ItemUtil {
 		//return UnSafeUtil.getInt(addr+3);
 		return UnSafeUtil.getInt(addr+24);
 	}
+
+	/**
+	 *  link方法调用
+	 * @param addr
+	 * @param time
+     */
+	public static void setTime(long addr,long time){
+		UnSafeUtil.putLong(addr+24,time);
+	}
 	
 	/**
 	 * 缓存的过期时间。设置为0的时候，则永久有效。
@@ -100,6 +110,11 @@ public class ItemUtil {
 		//PigBrother
 		//return UnSafeUtil.getShort(addr+15);
 		return UnSafeUtil.getShort(addr+44);
+	}
+
+
+	public static void setRefCount(long addr,short refCount){
+		UnSafeUtil.putShort(addr,refCount);
 	}
 
 	/**

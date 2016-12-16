@@ -1,16 +1,23 @@
 package io.mycat.jcache.items;
 
+import java.awt.event.ItemListener;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
+import io.mycat.jcache.context.JcacheContext;
+import io.mycat.jcache.enums.ItemFlags;
 import io.mycat.jcache.setting.Settings;
+import io.mycat.jcache.util.ItemUtil;
 
 /**
  * 
  * @author liyanjun
  * @author tangww
+ * @author  yangll
  *
  */
 public class Items {
+	private static  AtomicLong casIdGeneraytor = new AtomicLong();
 	final static AtomicBoolean[] allocItemStatus = new AtomicBoolean[Settings.POWER_LARGEST];
 	static {
         try {
@@ -46,6 +53,34 @@ public class Items {
 		}
 		
 		return 0;
+	}
+
+	public boolean do_item_link(long addr,int hv){
+		byte flags = (byte)(ItemUtil.getItflags(addr) | ItemFlags.ITEM_LINKED.getFlags());
+		ItemUtil.setItflags(addr,flags);
+		ItemUtil.setTime(addr,System.currentTimeMillis());
+		//TODO
+//		STATS_LOCK();
+//		stats_state.curr_bytes += ITEM_ntotal(it);
+//		stats_state.curr_items += 1;
+//		stats.total_items += 1;
+//		STATS_UNLOCK();
+
+		ItemUtil.setCAS(Settings.useCas?get_cas_id():0,addr);
+		//TODO assoc_insert(it,hv);//插入hash chain中
+		item_link_q(addr);
+		ItemUtil.setRefCount(addr, (short) (ItemUtil.getRefCount(addr)+1));
+		return true;
+	}
+
+	public static void item_link_q(long addr) {
+
+	}
+
+
+	/* Get the next CAS id for a new item. */
+	public static long get_cas_id() {
+		return casIdGeneraytor.getAndIncrement();
 	}
 	
 }
