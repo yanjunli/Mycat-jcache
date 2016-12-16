@@ -14,7 +14,6 @@ import io.mycat.jcache.hash.impl.HashImpl;
 import io.mycat.jcache.util.ItemUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Scanner;
 
 /**
  * Created by PigBrother(LZS/LZY) on 2016/12/15 7:17.
@@ -61,8 +60,6 @@ public class HashTable {
 
     public static long delect(String key, long item){
         long index = cached.getLong((int) (hash.hash(key) & 0xfffffff));
-        Scanner sc = new Scanner(System.in);
-        sc.nextLine();
         long pre_index = index;
         if(index==item) {
             cached.putLong((int) (hash.hash(key) & 0xfffffff), -1);
