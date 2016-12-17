@@ -67,6 +67,14 @@ public class ConfigLoader {
 		return Integer.parseInt(value);
 	}
 	
+	public static long getLongProperty(String key,long def){
+		String value = properties.getProperty(key);
+		if(value==null||"".equals(value)){
+			return def;
+		}
+		return Long.parseLong(value);
+	}
+	
 	public static void forEach(){
 		properties.forEach((k,v)->System.out.println("propertie key : " + k + " value : " + v));
 	}

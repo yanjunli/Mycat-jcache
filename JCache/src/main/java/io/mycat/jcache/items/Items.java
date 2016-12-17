@@ -116,13 +116,12 @@ public class Items {
 	
 	public static long do_item_get(String key,Connection conn){
 		long addr = HashTable.find(key);
-		long exptime = ItemUtil.getExpTime(addr);
 		int was_found = 0;
 		if(addr!=-1){
 //			ItemUtil.
 //			refcount_incr(&it->refcount); //TODO
 			was_found = 1;
-			
+			long exptime = ItemUtil.getExpTime(addr);
 			if(item_is_flushed(addr)){
 				do_item_unlink(addr);
 				do_item_remove(addr);

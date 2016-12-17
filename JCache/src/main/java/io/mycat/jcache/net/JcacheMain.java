@@ -66,7 +66,9 @@ public class JcacheMain
      * 初始化内存模块配置
      */
     public static void initMemoryConfig(){
-    	JcacheContext.setSlabPool(new SlabPool());
+    	SlabPool slabPool = new SlabPool();
+    	slabPool.init(ConfigLoader.getLongProperty("mem.limit", Integer.MAX_VALUE-1));
+    	JcacheContext.setSlabPool(slabPool);
     	JcacheContext.setItemsAccessManager(new ItemsAccessManager());
     }
 }
