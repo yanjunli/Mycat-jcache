@@ -70,7 +70,7 @@ public class Settings {
 	public static int CHUNK_ALIGN_BYTES = 8;
 	public static int SLAB_GLOBAL_PAGE_POOL = 0; /* magic slab class for storing pages for reassignment */
 	public static String hash_algorithm; //PigBrother hash algorithm
-	public static int ITEM_HEADER_LENGTH = 23;   /* item header length */
+	public static int ITEM_HEADER_LENGTH = 50;   /* item header length */
 	public static boolean SLABS_ALLOC_NO_NEWPAGE = true;
 	
 }

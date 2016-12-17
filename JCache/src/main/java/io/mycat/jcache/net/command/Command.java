@@ -1,15 +1,15 @@
 package io.mycat.jcache.net.command;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.binary.ProtocolResponseStatus;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
 import io.mycat.jcache.net.conn.handler.BinaryRequestHeader;
 import io.mycat.jcache.net.conn.handler.BinaryResponseHeader;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 
 /**
@@ -19,7 +19,7 @@ import io.mycat.jcache.net.conn.handler.BinaryResponseHeader;
  */
 public interface Command {
 	
-	Charset cs = Charset.forName (McacheGlobalConfig.defaultCahrset);
+	Charset cs = Charset.forName (JcacheGlobalConfig.defaultCahrset);
 
 	/**
 	 * 执行命令
@@ -29,7 +29,7 @@ public interface Command {
 	/**
 	 * 获取key
 	 * @param conn
-	 * @param buffer
+	 * @param //buffer
 	 * @return
 	 * @throws IOException
 	 */
@@ -47,7 +47,7 @@ public interface Command {
 	/**
 	 * 获取value
 	 * @param conn
-	 * @param buffer
+	 * @param //buffer
 	 * @return
 	 * @throws IOException
 	 */
