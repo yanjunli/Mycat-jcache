@@ -1,6 +1,6 @@
 package io.mycat.jcache.net.command;
 
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.binary.ProtocolResponseStatus;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -19,7 +19,7 @@ import java.nio.charset.Charset;
  */
 public interface Command {
 	
-	Charset cs = Charset.forName (McacheGlobalConfig.defaultCahrset);
+	Charset cs = Charset.forName (JcacheGlobalConfig.defaultCahrset);
 
 	/**
 	 * 执行命令
