@@ -406,6 +406,18 @@ public class ItemUtil {
 		return getHeaderEnd(addr) + getNskey(addr) + 1 + getNsuffix(addr) + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
 	}
 	
+	public static void ITEM_set_cas(long addr,long cas){
+		byte flags = getItflags(addr);
+		if((flags &ItemFlags.ITEM_CAS.getFlags())>0){
+			setCAS(cas, addr);
+		}
+	}
+	
+	public static long ITEM_get_cas(long addr){
+		byte flags = getItflags(addr);
+		return (flags &ItemFlags.ITEM_CAS.getFlags())>0?getCAS(addr):0;
+	}
+	
 	/**
 	 * 获取ntotal
 	 * (sizeof(struct _stritem) + (item)->nkey + 1 + (item)->nsuffix + (item)->nbytes + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
