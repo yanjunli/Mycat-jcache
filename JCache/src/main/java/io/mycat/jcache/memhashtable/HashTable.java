@@ -58,13 +58,10 @@ public class HashTable {
         return item;
     }
 
-    public static long delect(String key, long item){
+    //20161217艳军发现逻辑bug，fixed
+    public static long delect(String key){
         long index = cached.getLong((int) (hash.hash(key) & 0xfffffff));
-        long pre_index = index;
-        if(index==item) {
-            cached.putLong((int) (hash.hash(key) & 0xfffffff), -1);
-            return item;//delete success;  hashtable 里面没有冲突 ，直接删除，
-        }
+        long pre_index;
         if(index!=-1)
             do {
                 pre_index = index;
