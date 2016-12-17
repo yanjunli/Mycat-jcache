@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.mycat.jcache.context.JcacheContext;
 import io.mycat.jcache.enums.Protocol;
+import io.mycat.jcache.items.ItemsAccessManager;
+import io.mycat.jcache.memory.SlabPool;
 import io.mycat.jcache.net.strategy.ReactorSelectEnum;
 import io.mycat.jcache.net.strategy.ReactorStrategy;
 import io.mycat.jcache.net.strategy.RoundRobinStrategy;
@@ -26,6 +29,8 @@ public class JcacheMain
     	reactorStrategy.put(ReactorSelectEnum.ROUND_ROBIN, new RoundRobinStrategy());
     	
     	initGlobalConfig();
+    	/** 初始化 内存模块 配置   */
+    	initMemoryConfig();
     	/**
     	 * 后期可能变更为从环境变量获取
     	 */
@@ -44,6 +49,7 @@ public class JcacheMain
     }
     
     /**
+     * TODO 配置文件的合并
      * 初始化全局配置，后期可能变更为从环境变量获取
      */
     public static void initGlobalConfig(){
@@ -53,5 +59,14 @@ public class JcacheMain
     	}
 
     	JcacheGlobalConfig.prot = Protocol.valueOf(protStr);
+    }
+    
+    /**
+     * TODO hashtable 初始化配置部分需要优化
+     * 初始化内存模块配置
+     */
+    public static void initMemoryConfig(){
+    	JcacheContext.setSlabPool(new SlabPool());
+    	JcacheContext.setItemsAccessManager(new ItemsAccessManager());
     }
 }

@@ -1,6 +1,6 @@
 package io.mycat.jcache.context;
 
-import io.mycat.jcache.hash.Hash;
+import io.mycat.jcache.items.ItemsAccessManager;
 import io.mycat.jcache.memory.SlabPool;
 
 /**
@@ -9,24 +9,25 @@ import io.mycat.jcache.memory.SlabPool;
  *
  */
 public class JcacheContext {
+		
+	private static SlabPool slabPool;
 	
-	private Hash hash;
-	
-	private SlabPool slabPool;
+	private static ItemsAccessManager itemsAccessManager;
 
-	public Hash getHash() {
-		return hash;
-	}
-
-	public void setHash(Hash hash) {
-		this.hash = hash;
-	}
-
-	public SlabPool getSlabPool() {
+	public static SlabPool getSlabPool() {
 		return slabPool;
 	}
 
-	public void setSlabPool(SlabPool slabPool) {
-		this.slabPool = slabPool;
+	public static void setSlabPool(SlabPool slabPool) {
+		JcacheContext.slabPool = slabPool;
 	}
+
+	public static ItemsAccessManager getItemsAccessManager() {
+		return itemsAccessManager;
+	}
+
+	public static void setItemsAccessManager(ItemsAccessManager itemsAccessManager) {
+		JcacheContext.itemsAccessManager = itemsAccessManager;
+	}
+	
 }

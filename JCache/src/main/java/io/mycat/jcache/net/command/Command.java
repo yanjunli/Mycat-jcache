@@ -62,6 +62,22 @@ public interface Command {
 	}
 	
 	/**
+	 * 获取 value length
+	 * @param conn
+	 * @return
+	 * @throws IOException
+	 */
+	public default int readValueLength(Connection conn) throws IOException{
+		BinaryRequestHeader header = conn.getBinaryRequestHeader();
+		ByteBuffer buffer = conn.getReadDataBuffer();
+		int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen() ;
+		int valuestart = keystart + header.getKeylen();
+		int totalBodylength = header.getBodylen();
+		int valuelength = totalBodylength - header.getExtlen() - header.getKeylen() ;
+		return valuelength;
+	}
+	
+	/**
 	 * 读取 extras 
 	 * @param conn
 	 * @return

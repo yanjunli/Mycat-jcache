@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.mycat.jcache.enums.Protocol;
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.conn.handler.AsciiIOHanlder;
 import io.mycat.jcache.net.conn.handler.BinaryIOHandler;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -176,7 +176,7 @@ public class Connection implements Closeable,Runnable{
 	        	// 处理指令
 	        	readBuffer.flip();
 	        	
-	        	if(Protocol.negotiating.equals(McacheGlobalConfig.prot)){
+	        	if(Protocol.negotiating.equals(JcacheGlobalConfig.prot)){
 	            	byte magic = readBuffer.get(0);
 	            	if((magic & 0xff)==(BinaryProtocol.MAGIC_REQ & 0xff)){
 	            		setProtocol(Protocol.binary);

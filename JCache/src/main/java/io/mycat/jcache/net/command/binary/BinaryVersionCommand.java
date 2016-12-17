@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.Command;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -44,7 +44,7 @@ public class BinaryVersionCommand implements Command{
 		
 		if (keylen == 0 && extlen == 0 && bodylen == 0) {
 			logger.info("execute command quit ");
-			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_VERSION,null,McacheGlobalConfig.version.getBytes(),null,0l);
+			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_VERSION,null,JcacheGlobalConfig.version.getBytes(),null,0l);
 			writeResponse(conn,header,null,null,null);
 		} else {
 			writeResponse(conn, BinaryProtocol.OPCODE_VERSION, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
