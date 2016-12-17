@@ -6,10 +6,12 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.mycat.jcache.context.JcacheContext;
 import io.mycat.jcache.net.command.Command;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
 import io.mycat.jcache.net.conn.handler.BinaryResponseHeader;
+import io.mycat.jcache.util.ItemUtil;
 
 
 /**
@@ -46,8 +48,9 @@ public class BinaryGetCommand implements Command{
 			ByteBuffer key = readkey(conn);
 			String keystr = new String(cs.decode(key).array());
 			logger.info("execute command get key {}",keystr);
-			byte[] value = "This is a test String".getBytes("UTF-8");
-			int flags = 0x00000020;
+			long addr = JcacheContext.getItemsAccessManager().item_get(keystr, conn);
+			byte[] value = ItemUtil.getValue(addr);
+			int flags = ItemUtil.getItflags(addr);
 			byte[] extras = new byte[4];
 			extras[0] = (byte) (flags <<24  &0xff);
 			extras[1] = (byte) (flags <<16  &0xff);

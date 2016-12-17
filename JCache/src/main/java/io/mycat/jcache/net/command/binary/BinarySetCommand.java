@@ -3,7 +3,8 @@ package io.mycat.jcache.net.command.binary;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.context.JcacheContext;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.Command;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -20,14 +21,24 @@ public class BinarySetCommand implements Command{
 	@Override
 	public void execute(Connection conn) throws IOException {
 		ByteBuffer key = readkey(conn);
-		//key not exists TODO
-		if(key.remaining()>McacheGlobalConfig.KEY_MAX_LENGTH) {
-			writeResponse(conn, BinaryProtocol.OPCODE_SET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_KEY_ENOENT.getStatus(), 1L);
-		}
+
+		String keystr = new String(cs.decode(key).array());
 		ByteBuffer value = readValue(conn);
+				
+		ByteBuffer extras = readExtras(conn);
+		
+		int flags = extras.getInt();
+		int exptime = extras.getInt(4);
+		
+		long addr = JcacheContext.getItemsAccessManager().item_alloc(keystr, flags, exptime, readValueLength(conn)+2);
+		
+		if(addr==0){
+			//TODO
+		}
+		
 		//TODO
 		//value too large
-		if(value.remaining()> McacheGlobalConfig.VALUE_MAX_LENGTH){
+		if(value.remaining()> JcacheGlobalConfig.VALUE_MAX_LENGTH){
 			writeResponse(conn,BinaryProtocol.OPCODE_SET,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_E2BIG.getStatus(),1l);
 		}
 

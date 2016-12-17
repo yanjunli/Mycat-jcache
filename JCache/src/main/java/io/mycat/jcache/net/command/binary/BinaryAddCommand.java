@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.Command;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -24,7 +24,7 @@ public class BinaryAddCommand implements Command {
         ByteBuffer key = readkey(conn);
         byte[] ds = new byte[key.remaining()];
         key.get(ds);
-        if(ds.length>McacheGlobalConfig.KEY_MAX_LENGTH) {
+        if(ds.length>JcacheGlobalConfig.KEY_MAX_LENGTH) {
             writeResponse(conn, BinaryProtocol.OPCODE_ADD, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_KEY_ENOENT.getStatus(), 0L);
         }
 

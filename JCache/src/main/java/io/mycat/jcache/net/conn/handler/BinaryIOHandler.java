@@ -3,7 +3,7 @@ package io.mycat.jcache.net.conn.handler;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.Command;
 import io.mycat.jcache.net.command.CommandContext;
 import io.mycat.jcache.net.command.binary.ProtocolResponseStatus;
@@ -59,7 +59,7 @@ public class BinaryIOHandler implements IOHandler{
 //    	        c->write_and_go = conn_closing;
 //    	        return;
 //    	    }
-    	    if(keylen > McacheGlobalConfig.KEY_MAX_LENGTH) {
+    	    if(keylen > JcacheGlobalConfig.KEY_MAX_LENGTH) {
     	    	Command.writeResponseError(conn, 
 						   conn.getBinaryRequestHeader().getOpcode(),
 						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus());

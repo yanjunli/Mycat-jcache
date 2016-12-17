@@ -27,8 +27,8 @@ public class Settings {
 	public static long maxbytes = 64*1024*1024; //64M
 	public static int maxConns = 1024;
 	public static short verbose = 1;
-	public static short oldestLive = 0;
-	public static short oldestCas = 0;
+	public static long oldestLive = 0;
+	public static long oldestCas = 0;
 	public static short evictToFree = 1;  /* push old items out of cache when memory runs out */
 	public static String socketPath = null;
 	public static boolean prealloc = true;
@@ -72,5 +72,8 @@ public class Settings {
 	public static String hash_algorithm; //PigBrother hash algorithm
 	public static int ITEM_HEADER_LENGTH = 50;   /* item header length */
 	public static boolean SLABS_ALLOC_NO_NEWPAGE = true;
+	
+	public static int LRU_PULL_EVICT = 1;
+	public static int LRU_PULL_CRAWL_BLOCKS = 2;
 	
 }

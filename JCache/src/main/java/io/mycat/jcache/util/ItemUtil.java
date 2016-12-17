@@ -136,6 +136,10 @@ public class ItemUtil {
 		return UnSafeUtil.getLong(addr+EXPTIME);
 	}
 	
+	public static void setExpTime(long addr,long expTime){
+		UnSafeUtil.putLong(addr, expTime);
+	}
+	
 	/**
 	 * value数据大小
 	 * @param //item
@@ -145,6 +149,10 @@ public class ItemUtil {
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+11);
 		return UnSafeUtil.getInt(addr+NBYTES);
+	}
+	
+	public static void setNbytes(long addr,int nbytes){
+		UnSafeUtil.putInt(addr+40,nbytes);
 	}
 	
 	/**
@@ -343,10 +351,20 @@ public class ItemUtil {
 	 *
 	 * Returns the total size of the header.
 	 */	
-	public static int item_make_header(byte nkey,int flags,int nbytes,long suffix,long nsuffix){
+	public static int item_make_header(int nkey,int flags,int nbytes){
 	    /* suffix is defined at 40 chars elsewhere.. */
 //	    *nsuffix = (uint8_t) snprintf(suffix, 40, " %u %d\r\n", flags, nbytes - 2);
 //	    return sizeof(item) + nkey + *nsuffix + nbytes;
+		
+		String suffixStr = item_make_header_suffix(nkey,flags,nbytes);
+		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+	}
+	
+	public static int item_make_header(int nkey,int flags,int nbytes,String suffixStr){
+		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+	}
+	
+	public static String item_make_header_suffix(int nkey,int flags,int nbytes){
 		StringBuffer sb = new StringBuffer();
 		sb.append(" ").append(flags).append(" ").append((nbytes-2));
 		String suffixStr = sb.toString();
@@ -354,9 +372,7 @@ public class ItemUtil {
 		if(suffixStr.length()>40){
 			suffixStr = suffixStr.substring(0, 40);
 		}
-		UnSafeUtil.setBytes(suffix, suffixStr.getBytes(), 0, suffixStr.length());
-		UnSafeUtil.putByte(nsuffix, (byte)suffixStr.length());
-		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+		return suffixStr;
 	}
 	
 	/**
@@ -396,7 +412,7 @@ public class ItemUtil {
 	 * @param addr
 	 * @return
 	 */
-	public static long ITEM_ntotal(long addr){
+	public static int ITEM_ntotal(long addr){
 		//TODO 
 		return 0;
 	}
