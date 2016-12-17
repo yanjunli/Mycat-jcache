@@ -44,6 +44,14 @@ public interface Command {
 		}
 	}
 	
+	public default int readKeyLength(Connection conn) throws IOException{
+		return conn.getBinaryRequestHeader().getKeylen();
+	}
+	
+	public default long readCAS(Connection conn){
+		return conn.getBinaryRequestHeader().getCas();
+	}
+	
 	/**
 	 * 获取value
 	 * @param conn
