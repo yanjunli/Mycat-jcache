@@ -10,6 +10,11 @@ import io.mycat.jcache.setting.Settings;
  * bytebuffer 组织形式， header 和 data 部分。                                                                                                                                                                       header 部分结束
  * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,//    CAS,key,suffix,value
  * 0    8    16    24        32      40     44       46         47       48      49          50  58  58+key
+ * 
+ * item   cas  key  suffix  data
+ * 
+ * suffix  由   '' "flag" '' "nbytes" \r \n 组成。
+ * 其中 "flag"  为 flag 的字符形式， "nbytes"  是 nbytes 的字符形式
  */
 public class ItemUtil {
 
@@ -375,6 +380,21 @@ public class ItemUtil {
 			suffixStr = suffixStr.substring(0, 40);
 		}
 		return suffixStr;
+	}
+	
+	/**
+	 * 获取 suffix 中 flags
+	 * @param addr
+	 * @return
+	 */
+	public static int ITEM_suffix_flags(long addr){		
+//		int length = getNsuffix(addr);
+//		int nbytes = String.valueOf(getNbytes(addr)).length();
+//		length -= (nbytes + 2 + 1);  //减去   /r /r  ''  总共三个字符
+//		byte[] flagsBytes = new byte[length];
+//		
+//		UnSafeUtil.getBytes(ITEM_suffix(addr), flagsBytes, 0, length);
+		return UnSafeUtil.getByte(ITEM_suffix(addr));
 	}
 	
 	/**

@@ -38,7 +38,7 @@ public class BinarySetCommand implements Command{
 				
 		ByteBuffer extras = readExtras(conn);
 		
-		int flags = extras.getInt();//TODO 
+		int flags = extras.getInt();
 		int exptime = extras.getInt(4);
 	
 		try {
