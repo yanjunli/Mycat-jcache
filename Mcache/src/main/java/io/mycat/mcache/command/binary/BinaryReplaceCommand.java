@@ -4,7 +4,6 @@ import io.mycat.mcache.McacheGlobalConfig;
 import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
 import io.mycat.mcache.conn.handler.BinaryProtocol;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +29,9 @@ public class BinaryReplaceCommand implements Command {
 
         String keys = new String(cs.decode(key).array());
         //replace MUST fail if the item not exist.
-        if(ReadWritePool.get(new String[]{keys}).length<=0) {
-            writeResponse(conn,BinaryProtocol.OPCODE_ADD,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_NOT_STORED.getStatus(),0l);
-        }
+//        if(ReadWritePool.get(new String[]{keys}).length<=0) {
+//            writeResponse(conn,BinaryProtocol.OPCODE_ADD,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_NOT_STORED.getStatus(),0l);
+//        }
         //extras
         ByteBuffer extras = readExtras(conn);
         extras.limit(extras.position()+4);
@@ -47,8 +46,8 @@ public class BinaryReplaceCommand implements Command {
         System.out.println("执行replace 命令   key: "+new String(cs.decode (key).array()));
         System.out.println("执行replace 命令   value: "+new String(cs.decode (value).array()));
 
-        int result = ReadWritePool.replace(keys,flags.getInt(),data.length,expiry.getLong(),data);
-        System.out.println("replace command result : "+result);
+//        int result = ReadWritePool.replace(keys,flags.getInt(),data.length,expiry.getLong(),data);
+//        System.out.println("replace command result : "+result);
         writeResponse(conn,BinaryProtocol.OPCODE_ADD,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus(),1l);
     }
 

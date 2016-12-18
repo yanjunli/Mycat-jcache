@@ -1,16 +1,12 @@
 package io.mycat.mcache.command.binary;
 
-import io.mycat.mcache.TCPNIOAcceptor;
 import io.mycat.mcache.command.Command;
 import io.mycat.mcache.conn.Connection;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReadWritePool;
-import mycat.leaderus.lzy.cachesys.memcache_v5.ReturnStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by qd on 2016/12/2.
@@ -27,9 +23,9 @@ public class BinaryDeleteCommand implements  Command {
             writeResponse(conn, ProtocolCommand.PROTOCOL_BINARY_CMD_DELETE.getByte(), ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_KEY_ENOENT.getStatus(),0l);
         }
         String keys = new String(cs.decode(key).array());
-        int result = ReadWritePool.delete(keys);
-        logger.info("delete command result : "+result);
-        System.out.println("delete command result :"+result);
+//        int result = ReadWritePool.delete(keys);
+//        logger.info("delete command result : "+result);
+//        System.out.println("delete command result :"+result);
         writeResponse(conn,ProtocolCommand.PROTOCOL_BINARY_CMD_DELETE.getByte(),ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus(),1l);
     }
 }

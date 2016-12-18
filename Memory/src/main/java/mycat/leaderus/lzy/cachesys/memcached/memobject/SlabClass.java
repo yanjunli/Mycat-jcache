@@ -1,6 +1,6 @@
 package mycat.leaderus.lzy.cachesys.memcached.memobject;
 
-import mycat.leaderus.lzy.cachesys.memcache_v5.ResultsWithCAS;
+
 import mycat.leaderus.lzy.cachesys.memcached.config.MemConfig;
 
 import java.nio.ByteBuffer;
