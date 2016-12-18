@@ -14,7 +14,6 @@ import io.mycat.jcache.hash.impl.HashImpl;
 import io.mycat.jcache.util.ItemUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Scanner;
 
 /**
  * Created by PigBrother(LZS/LZY) on 2016/12/15 7:17.
@@ -26,15 +25,16 @@ import java.util.Scanner;
 public class HashTable {
     private static ByteBuffer cached = ByteBuffer.allocateDirect(0x7ffffff8);
     static Hash hash = new HashImpl(Hash_func_type.PIG_HASH);
-    static {
+/*    static {
         for (int i = 0; i < 0xfffffff; i++) {
             cached.putLong(-1);
         }
-    }
+    }*/
 
+    //艳军提示逻辑地址 0xC0000000  开头 ，根据此原则 改变判断方法
     public static long find(String key) {
         long index = cached.getLong((int) (hash.hash(key) & 0xfffffff));
-        if(index != -1)
+        if(index != 0)
             do {
                 if (ItemUtil.getKey(index).equals(key)) {
                     return index;
@@ -45,30 +45,25 @@ public class HashTable {
 
     public static long put(String key, long item){
         int index = (int) (hash.hash(key) & 0xfffffff);
-        long pre_index = -1;
-        long pre_index2 = -1;
-        while ((pre_index=cached.get(index))!= -1){
+        long pre_index = 0;
+        long pre_index2 = 0;
+        while ((pre_index=cached.get(index))!= 0){
             if(ItemUtil.getKey(pre_index).equals(key))
                 return pre_index;
             pre_index2=pre_index;
         }
-        if(pre_index2!=-1)
+        if(pre_index2!=0)
             ItemUtil.setHNext(pre_index2,item);
         else
             cached.putLong(index,item);
         return item;
     }
 
-    public static long delect(String key, long item){
+    //20161217艳军发现逻辑bug，fixed
+    public static long delect(String key){
         long index = cached.getLong((int) (hash.hash(key) & 0xfffffff));
-        Scanner sc = new Scanner(System.in);
-        sc.nextLine();
-        long pre_index = index;
-        if(index==item) {
-            cached.putLong((int) (hash.hash(key) & 0xfffffff), -1);
-            return item;//delete success;  hashtable 里面没有冲突 ，直接删除，
-        }
-        if(index!=-1)
+        long pre_index;
+        if(index!=0)
             do {
                 pre_index = index;
                 if (ItemUtil.getKey(index).equals(key)) {

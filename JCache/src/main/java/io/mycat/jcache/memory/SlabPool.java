@@ -4,11 +4,11 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.mycat.jcache.setting.Settings;
 import io.mycat.jcache.util.UnSafeUtil;
-import sun.nio.ch.DirectBuffer;
 
 /*
  * 
@@ -18,7 +18,7 @@ import sun.nio.ch.DirectBuffer;
  *
  */
 public class SlabPool {
-	Logger log = Logger.getLogger(SlabPool.class);
+	Logger log = LoggerFactory.getLogger(SlabPool.class);
 	
 	final SlabClass[] slabClassArr;
 	long memBase;      //当前 bytebuffer  内存首地址
@@ -47,7 +47,7 @@ public class SlabPool {
 		try{
 			
 			if(memLimit<Integer.MAX_VALUE){
-				baseBuf = new ByteBuffer[0];
+				baseBuf = new ByteBuffer[1];
 				baseBuf[0] = ByteBuffer.allocateDirect((int) memLimit);
 			}else{
 				int bufcount = (int) Math.ceil((memLimit/Integer.MAX_VALUE));
@@ -65,7 +65,7 @@ public class SlabPool {
 			}
 			mem_avail = memLimit;
 			mem_limit = memLimit;
-			memBase = ((DirectBuffer) baseBuf[0]).address();
+			memBase = ((sun.nio.ch.DirectBuffer) baseBuf[0]).address();
 			mem_current = memBase;
 			
 
@@ -89,8 +89,7 @@ public class SlabPool {
 		}
 		
 		this.powerLargest = i; 
-		slabClassArr[powerLargest].chunkSize = Settings.itemSizeMax;
-		slabClassArr[powerLargest].perSlab = Settings.slabPageSize/Settings.slabChunkSizeMax;
+		slabClassArr[powerLargest] = new SlabClass(Settings.itemSizeMax,Settings.slabPageSize/Settings.slabChunkSizeMax);
 		log.info("slab class "+i+": chunk size "+size+" item count "+slabClassArr[powerLargest].perSlab);
 		
 		/* 预分配slab 在 slabclasss 中 */
@@ -192,7 +191,7 @@ public class SlabPool {
 				mem_avail -= size;    //可用内存 减少          size
 			}else{
 				mem_avail -= ((memBase+Integer.MAX_VALUE) - mem_current);  //当前bytebuffer 最后几位被浪费掉了。
-				memBase = ((DirectBuffer) baseBuf[++currByteIndex]).address();
+				memBase = ((sun.nio.ch.DirectBuffer) baseBuf[++currByteIndex]).address();
 				mem_current = memBase;
 			}
 			return mem_current;

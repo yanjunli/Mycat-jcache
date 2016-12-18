@@ -83,10 +83,10 @@ public final class TCPNIOAcceptor extends Thread {
 			NIOReactor reactor = reactorPool.getNextReactor();
 			Connection conn = new Connection(channel);
 			conn.setId(ConnectIdGenerator.getINSTNCE().getId());
-			conn.setProtocol(McacheGlobalConfig.prot);
-			if(Protocol.ascii.equals(McacheGlobalConfig.prot)){
+			conn.setProtocol(JcacheGlobalConfig.prot);
+			if(Protocol.ascii.equals(JcacheGlobalConfig.prot)){
 				conn.setIOHanlder(new AsciiIOHanlder());
-			}else if(Protocol.binary.equals(McacheGlobalConfig.prot)){
+			}else if(Protocol.binary.equals(JcacheGlobalConfig.prot)){
 				conn.setIOHanlder(new BinaryIOHandler());
 			}
 			reactor.registerNewClient(conn);

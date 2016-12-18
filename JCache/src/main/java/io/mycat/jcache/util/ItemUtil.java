@@ -7,12 +7,32 @@ import io.mycat.jcache.setting.Settings;
  * item 工具
  * @author liyanjun
  * @author PigBrother
- * @author  yangll
  * bytebuffer 组织形式， header 和 data 部分。                                                                                                                                                                       header 部分结束
  * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,//    CAS,key,suffix,value
  * 0    8    16    24        32      40     44       46         47       48      49          50  58  58+key
  */
 public class ItemUtil {
+
+	/**
+	 * PigBrother
+	 * 字段偏移
+	 */
+	private static final byte PREV=0;
+	private static final byte NEXT=8;
+	private static final byte HNEXT=16;
+	private static final byte FLUSHTIME=24;
+	private static final byte EXPTIME=32;
+	private static final byte NBYTES=40;
+	private static final byte REFCOUNT=44;
+	private static final byte SLABSCLISD=46;
+	private static final byte IT_FLAGS=47;
+	private static final byte NSUFFIX=48;
+	private static final byte NSKEY=49;
+	private static final byte CAS=50;
+	private static final byte KEY=58;
+//	private static final byte SUFFER=0;这两个字段偏移是动态的
+//	private static final byte VALUE=0;
+
 
 	////////////////////////////////// header begin ////////////////////////////////////////////////
 
@@ -23,10 +43,31 @@ public class ItemUtil {
 	 */
 	public static byte getPrev(long addr){
 		return UnSafeUtil.getByte(addr);
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+     */
+	public static long getPrev(long addr){
+		return UnSafeUtil.getByteVolatile(addr+PREV);
 	}
 
 	public static void setPrev(long addr,byte prev){
 		UnSafeUtil.putByte(addr, prev);
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+	 */
+	public static void setPrev(long addr,long prev){
+		//This place used Volatile is not necessary.
+		//after codes didn't  use   Volatile
+		// setNest()
+		UnSafeUtil.putLongVolatile(addr, prev+PREV);
 	}
 	
 	/**
@@ -34,12 +75,21 @@ public class ItemUtil {
 	 * @param item
 	 * @return
 	 */
-	public static byte getNext(long addr){
-		return UnSafeUtil.getByte(addr+1);
+	public static long getNext(long addr){
+		//return UnSafeUtil.getByte(addr+1);
+		return UnSafeUtil.getLong(addr+NEXT);
 	}
-
-	public static void setNext(long addr,byte next){
-		UnSafeUtil.putByte(addr+1, next);
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+	 */
+	public static void setNext(long addr,long next){
+		///UnSafeUtil.putByte(addr+1, next);   old
+		//PigBrother
+		UnSafeUtil.putLong(addr+NEXT, next);
 	}
 	
 	/**
@@ -47,10 +97,22 @@ public class ItemUtil {
 	 * @param item
 	 * @return
 	 */
-	public static byte getHNext(long addr){
-		return UnSafeUtil.getByte(addr+2);
+	/**
+	 * This place had huge bug ,  byte  didn't enough to contain the information the address
+	 * This place must be long
+	 * @author PigBrother
+	 * @param addr
+	 * @return
+	 */
+	public static long getHNext(long addr){
+		//return UnSafeUtil.getByte(addr+2);
+		return UnSafeUtil.getLong(addr+HNEXT);
 	}
-
+	// fixed setHNext(long addr, long next)
+	//PigBrohter
+	public static void setHNext(long addr,long hnext){
+		UnSafeUtil.putLong(addr+HNEXT, hnext);
+	}
 	/**
 	          最近访问的时间，只有set/add/replace等操作才会更新这个字段
 	 * 当执行flush命令的时候，需要用这个时间和执行flush命令的时间相比较，来判断是否失效  
@@ -62,7 +124,7 @@ public class ItemUtil {
 	public static long getTime(long addr){
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+3);
-		return UnSafeUtil.getInt(addr+24);
+		return UnSafeUtil.getInt(addr+FLUSHTIME);
 	}
 
 	/**
@@ -71,9 +133,9 @@ public class ItemUtil {
 	 * @param time
      */
 	public static void setTime(long addr,long time){
-		UnSafeUtil.putLong(addr+24,time);
+		UnSafeUtil.putLong(addr+FLUSHTIME,time);
 	}
-	
+
 	/**
 	 * 缓存的过期时间。设置为0的时候，则永久有效。
 	 * 如果Memcached不能分配新的item的时候，设置为0的item也有可能被LRU淘汰
@@ -85,7 +147,11 @@ public class ItemUtil {
 	public static long getExpTime(long addr){
 		//PigBrother
 		//return UnSafeUtil.getLong(addr+7);
-		return UnSafeUtil.getLong(addr+32);
+		return UnSafeUtil.getLong(addr+EXPTIME);
+	}
+
+	public static void setExpTime(long addr,long expTime){
+		UnSafeUtil.putLong(addr, expTime);
 	}
 	
 	/**
@@ -96,7 +162,11 @@ public class ItemUtil {
 	public static int getNbytes(long addr){
 		//PigBrother
 		//return UnSafeUtil.getInt(addr+11);
-		return UnSafeUtil.getInt(addr+40);
+		return UnSafeUtil.getInt(addr+NBYTES);
+	}
+
+	public static void setNbytes(long addr,int nbytes){
+		UnSafeUtil.putInt(addr+40,nbytes);
 	}
 	
 	/**
@@ -109,12 +179,12 @@ public class ItemUtil {
 	public static short getRefCount(long addr){
 		//PigBrother
 		//return UnSafeUtil.getShort(addr+15);
-		return UnSafeUtil.getShort(addr+44);
+		return UnSafeUtil.getShort(addr+REFCOUNT);
 	}
 
 
 	public static void setRefCount(long addr,short refCount){
-		UnSafeUtil.putShort(addr,refCount);
+		UnSafeUtil.putShort(addr+REFCOUNT,refCount);
 	}
 
 	/**
@@ -125,13 +195,13 @@ public class ItemUtil {
 	public static byte getSlabsClsid(long addr){
 		//PigBrother
 		//return UnSafeUtil.getByte(addr+17);
-		return UnSafeUtil.getByte(addr+46);
+		return UnSafeUtil.getByte(addr+SLABSCLISD);
 	}
 	
 	public static void setSlabsClsid(long addr,byte clsid){
 		// PigBrother
 		// /UnSafeUtil.putByte(addr+17, clsid);
-		UnSafeUtil.putByte(addr+46, clsid);
+		UnSafeUtil.putByte(addr+SLABSCLISD, clsid);
 	}
 	
 	/**
@@ -143,13 +213,13 @@ public class ItemUtil {
 		// PigBrother
 		// 这个memcached里 是一个int  用 byte表示是否够了？
 		// /return UnSafeUtil.getByte(addr+18);
-		return UnSafeUtil.getByte(addr+47);
+		return UnSafeUtil.getByte(addr+IT_FLAGS);
 	}
 	
 	public static void setItflags(long addr,byte flags){
 		// PigBrother
 		//UnSafeUtil.putByte(addr+18,flags);
-		UnSafeUtil.putByte(addr+47,flags);
+		UnSafeUtil.putByte(addr+IT_FLAGS,flags);
 	}
 	
 	/**
@@ -160,12 +230,12 @@ public class ItemUtil {
 	public static byte getNsuffix(long addr){
 		// PigBrother
 		//return UnSafeUtil.getByte(addr+19);
-		return UnSafeUtil.getByte(addr+48);
+		return UnSafeUtil.getByte(addr+NSUFFIX);
 	}
-
-
+	
+	
 	public static void setNsuffix(long addr,byte nsuffix){
-		UnSafeUtil.putByte(addr+48,nsuffix);
+		UnSafeUtil.putByte(addr+NSUFFIX,nsuffix);
 	}
 	
 	/**
@@ -176,20 +246,20 @@ public class ItemUtil {
 	public static byte getNskey(long addr){
 		// PigBrother
 		//return UnSafeUtil.getByte(addr+20);
-		return UnSafeUtil.getByte(addr+49);
+		return UnSafeUtil.getByte(addr+NSKEY);
 	}
-
-
+	
+	
 	public static void setNskey(long addr,byte nkey){
-		UnSafeUtil.putByte(addr+49,nkey);
+		UnSafeUtil.putByte(addr+NSKEY,nkey);
 	}
-
+	
 	public static long getHeaderEnd(long addr){
-		return addr + 50;
+		return addr + CAS;
 	}
-
+	
 	////////////////////////////////// header end ////////////////////////////////////////////////
-
+	
 	//PigBrother
 	/**
 	 * length of CAS
@@ -208,7 +278,7 @@ public class ItemUtil {
 	public static void setCAS(long CAS, long addr){
 		UnSafeUtil.putLongVolatile(getHeaderEnd(addr),CAS);
 	}
-
+	
 	/**
 	 * ((item)->slabs_clsid & ~(3<<6))
 	 * @param addr
@@ -217,7 +287,7 @@ public class ItemUtil {
 	public static long ITEM_clsid(long addr){
 		return getSlabsClsid(addr) & ~(3<<6) ;
 	}
-
+	
 	//PigBrother
 	/**
 	 * length of key
@@ -227,7 +297,7 @@ public class ItemUtil {
 	public static String getKey(long addr){
 		byte[] bs = new byte[getNskey(addr)&0xff];
 		for (int i = 0; i < bs.length; i++) {
-			bs[i]=UnSafeUtil.getByte(addr+58+i);
+			bs[i]=UnSafeUtil.getByte(addr+KEY+i);
 		}
 		return new String(bs);
 	}
@@ -242,10 +312,10 @@ public class ItemUtil {
 			throw new RuntimeException("Error, NSkey's values != key_bytes.length");
 		}
 		for (int i = 0; i < key_bytes.length; i++) {
-			UnSafeUtil.putByte(addr+i+58,key_bytes[i]);
+			UnSafeUtil.putByte(addr+i+KEY,key_bytes[i]);
 		}
 	}
-
+	
 	/**
 	 * 设置 suffix
 	 * @param addr
@@ -254,7 +324,7 @@ public class ItemUtil {
 	public static void setSuffix(long addr,byte[] suffix){
 		UnSafeUtil.setBytes(ITEM_suffix(addr), suffix, 0, suffix.length);
 	}
-
+	
 	/**
 	 * 获取suffix
 	 * @param addr
@@ -266,7 +336,7 @@ public class ItemUtil {
 		UnSafeUtil.getBytes(addr, data, (int)ITEM_suffix(addr),length);
 		return data;
 	}
-
+	
 	/**
 	 * 获取value
 	 * @param addr
@@ -278,7 +348,7 @@ public class ItemUtil {
 		UnSafeUtil.getBytes(addr, data, (int)ITEM_data(addr),length);
 		return data;
 	}
-
+	
 	/**
 	 * 设置 value
 	 * @param addr
@@ -300,10 +370,20 @@ public class ItemUtil {
 	 *
 	 * Returns the total size of the header.
 	 */	
-	public static int item_make_header(byte nkey,int flags,int nbytes,long suffix,long nsuffix){
+	public static int item_make_header(int nkey,int flags,int nbytes){
 	    /* suffix is defined at 40 chars elsewhere.. */
 //	    *nsuffix = (uint8_t) snprintf(suffix, 40, " %u %d\r\n", flags, nbytes - 2);
 //	    return sizeof(item) + nkey + *nsuffix + nbytes;
+
+		String suffixStr = item_make_header_suffix(nkey,flags,nbytes);
+		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+	}
+
+	public static int item_make_header(int nkey,int flags,int nbytes,String suffixStr){
+		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+	}
+
+	public static String item_make_header_suffix(int nkey,int flags,int nbytes){
 		StringBuffer sb = new StringBuffer();
 		sb.append(" ").append(flags).append(" ").append((nbytes-2));
 		String suffixStr = sb.toString();
@@ -311,11 +391,9 @@ public class ItemUtil {
 		if(suffixStr.length()>40){
 			suffixStr = suffixStr.substring(0, 40);
 		}
-		UnSafeUtil.setBytes(suffix, suffixStr.getBytes(), 0, suffixStr.length());
-		UnSafeUtil.putByte(nsuffix, (byte)suffixStr.length());
-		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
+		return suffixStr;
 	}
-
+	
 	/**
 	 * 获取key 开始地址
 	 * ITEM_key(item) (((char*)&((item)->data)) + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
@@ -336,7 +414,7 @@ public class ItemUtil {
 	public static long ITEM_suffix(long addr){
 		return getHeaderEnd(addr) + getNskey(addr) + 1 + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
 	}
-
+	
 	/**
 	 * 获取data 开始地址
 	 * ((char*) &((item)->data) + (item)->nkey + 1 + (item)->nsuffix + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
@@ -347,14 +425,26 @@ public class ItemUtil {
 		return getHeaderEnd(addr) + getNskey(addr) + 1 + getNsuffix(addr) + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
 	}
 
+	public static void ITEM_set_cas(long addr,long cas){
+		byte flags = getItflags(addr);
+		if((flags &ItemFlags.ITEM_CAS.getFlags())>0){
+			setCAS(cas, addr);
+		}
+	}
+
+	public static long ITEM_get_cas(long addr){
+		byte flags = getItflags(addr);
+		return (flags &ItemFlags.ITEM_CAS.getFlags())>0?getCAS(addr):0;
+	}
+
 	/**
 	 * 获取ntotal
 	 * (sizeof(struct _stritem) + (item)->nkey + 1 + (item)->nsuffix + (item)->nbytes + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
 	 * @param addr
 	 * @return
 	 */
-	public static long ITEM_ntotal(long addr){
-		//TODO
+	public static int ITEM_ntotal(long addr){
+		//TODO 
 		return 0;
 	}
 

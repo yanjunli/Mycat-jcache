@@ -1,6 +1,6 @@
 package io.mycat.jcache.net.command;
 
-import io.mycat.jcache.net.McacheGlobalConfig;
+import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.binary.ProtocolResponseStatus;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -19,7 +19,7 @@ import java.nio.charset.Charset;
  */
 public interface Command {
 	
-	Charset cs = Charset.forName (McacheGlobalConfig.defaultCahrset);
+	Charset cs = Charset.forName (JcacheGlobalConfig.defaultCahrset);
 
 	/**
 	 * 执行命令
@@ -44,6 +44,14 @@ public interface Command {
 		}
 	}
 	
+	public default int readKeyLength(Connection conn) throws IOException{
+		return conn.getBinaryRequestHeader().getKeylen();
+	}
+	
+	public default long readCAS(Connection conn){
+		return conn.getBinaryRequestHeader().getCas();
+	}
+	
 	/**
 	 * 获取value
 	 * @param conn
@@ -59,6 +67,22 @@ public interface Command {
 		int totalBodylength = header.getBodylen();
 		int valuelength = totalBodylength - header.getExtlen() - header.getKeylen() ;
 		return getBytes(buffer,valuestart, valuelength);
+	}
+	
+	/**
+	 * 获取 value length
+	 * @param conn
+	 * @return
+	 * @throws IOException
+	 */
+	public default int readValueLength(Connection conn) throws IOException{
+		BinaryRequestHeader header = conn.getBinaryRequestHeader();
+		ByteBuffer buffer = conn.getReadDataBuffer();
+		int keystart  = BinaryProtocol.memcache_packetHeaderSize+ header.getExtlen() ;
+		int valuestart = keystart + header.getKeylen();
+		int totalBodylength = header.getBodylen();
+		int valuelength = totalBodylength - header.getExtlen() - header.getKeylen() ;
+		return valuelength;
 	}
 	
 	/**
