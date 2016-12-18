@@ -2,7 +2,10 @@ package io.mycat.jcache.net.command.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Date;
 
+import io.mycat.jcache.context.JcacheContext;
+import io.mycat.jcache.util.ItemUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +47,26 @@ public class BinaryTouchCommand implements Command{
 	
 	@Override
 	public void execute(Connection conn) throws IOException {
+		logger.info("execute touche command");
 		int keylen = conn.getBinaryRequestHeader().getKeylen();
 		int bodylen = conn.getBinaryRequestHeader().getBodylen();
 		int extlen  = conn.getBinaryRequestHeader().getExtlen();
-		
+
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
-			ByteBuffer key = readkey(conn);
-			String keystr = new String(cs.decode(key).array());
-			logger.info("execute command touch key {}",keystr);
-			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GAT,null,null,null,1l);
-			writeResponse(conn,header,null,null,null);
+			try {
+				ByteBuffer key = readkey(conn);
+				String keystr = new String(cs.decode(key).array());
+				logger.info("execute command get key {}",keystr);
+				long addr = JcacheContext.getItemsAccessManager().item_get(keystr, conn);
+				System.out.println("  addr  "+addr);
+//				byte[] value = ItemUtil.getValue(addr);
+				ItemUtil.setExpTime(addr,System.currentTimeMillis()/1000);
+				BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_TOUCH,null,null,null,1l);
+				writeResponse(conn,header,null,null,null);
+		} catch (Exception e) {
+			logger.error(" execute command touch error ", e);
+			throw e;
+		}
 		} else {
 			writeResponse(conn, BinaryProtocol.OPCODE_GAT, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
 		}
