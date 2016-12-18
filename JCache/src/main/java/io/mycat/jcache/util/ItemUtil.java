@@ -122,6 +122,10 @@ public class ItemUtil {
 		return UnSafeUtil.getInt(addr+FLUSHTIME);
 	}
 	
+	public static void setTime(long addr,long time){
+		UnSafeUtil.lazySetLong(addr+FLUSHTIME, time);
+	}
+	
 	/**
 	 * 缓存的过期时间。设置为0的时候，则永久有效。
 	 * 如果Memcached不能分配新的item的时候，设置为0的item也有可能被LRU淘汰

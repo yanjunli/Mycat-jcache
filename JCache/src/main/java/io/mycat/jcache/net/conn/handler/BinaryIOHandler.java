@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.Command;
 import io.mycat.jcache.net.command.CommandContext;
+import io.mycat.jcache.net.command.CommandType;
 import io.mycat.jcache.net.command.binary.ProtocolResponseStatus;
 import io.mycat.jcache.net.conn.Connection;
 
@@ -65,14 +66,16 @@ public class BinaryIOHandler implements IOHandler{
 						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus());
     			return;
     	    }
+    	    byte opcode = conn.getBinaryRequestHeader().getOpcode();
     		//执行命令
-    		command = CommandContext.getCommand(conn.getBinaryRequestHeader().getOpcode());
+    		command = CommandContext.getCommand(opcode);
     		
     		if(command==null){
     			Command.writeResponseError(conn, 
 						   conn.getBinaryRequestHeader().getOpcode(),
 						   ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_UNKNOWN_COMMAND.getStatus());
     		}
+    		conn.setCurCommand(CommandType.getType(opcode));
     		command.execute(conn);
     		offset += length;
     		readbuffer.position(offset);

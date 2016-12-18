@@ -2,10 +2,12 @@ package io.mycat.jcache.items;
 
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.mycat.jcache.context.JcacheContext;
 import io.mycat.jcache.enums.ItemFlags;
 import io.mycat.jcache.enums.LRU_TYPE_MAP;
+import io.mycat.jcache.enums.Store_item_type;
 import io.mycat.jcache.memhashtable.HashTable;
 import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.conn.Connection;
@@ -19,6 +21,8 @@ import io.mycat.jcache.util.ItemUtil;
  *
  */
 public class Items {
+		
+	final static AtomicLong casid = new AtomicLong(0);
 		
 	final static AtomicBoolean[] allocItemStatus = new AtomicBoolean[Settings.POWER_LARGEST];
 	static {
@@ -149,6 +153,82 @@ public class Items {
 		return addr;
 	}
 	
+	/*
+	 * Stores an item in the cache according to the semantics of one of the set
+	 * commands. In threaded mode, this is protected by the cache lock.
+	 *
+	 * Returns the state of storage.
+	 */
+	public static Store_item_type do_item_store(long addr,Connection conn,long hv){
+		Store_item_type stored = Store_item_type.NOT_STORED;
+		String key = ItemUtil.getKey(addr);
+		long oldaddr = do_item_get(key,conn);
+		
+		
+		/*
+		 * 只实现了 set 命令的处理 
+		 */
+		if(oldaddr!=0){
+		}
+		
+		int failed_alloc = 0;
+		if(Store_item_type.NOT_STORED.equals(stored)&&failed_alloc==0){
+			if(oldaddr!=0){
+//				item_replace(oldaddr,addr,hv); //todo replace
+			}else{
+				do_item_link(addr,hv);
+				stored = Store_item_type.STORED;
+			}
+		}
+		
+		if(oldaddr!=0){
+			do_item_remove(oldaddr);  /* release our reference */
+		}
+		
+		if(Store_item_type.STORED.equals(stored)){
+//			c->cas = ITEM_get_cas(it);
+		}
+		
+		return stored;
+	}
+	
+	public static boolean do_item_link(long addr,long hv){
+		byte flags = ItemUtil.getItflags(addr);
+		ItemUtil.setItflags(addr, (byte)(flags|ItemFlags.ITEM_LINKED.getFlags()));
+		ItemUtil.setTime(addr, System.currentTimeMillis());
+		
+		 /* Allocate a new CAS ID on link. */
+		ItemUtil.ITEM_set_cas(addr, Settings.useCas?get_cas_id():0);
+		HashTable.put(ItemUtil.getKey(addr), addr);
+		item_link_q(addr);
+//		refcount_incr(ItemUtil.getRefCount(addr));
+//		item_stats_sizes_add(addr);
+		return true;
+	}
+	
+	public static void item_link_q(long addr){
+		int clsid = ItemUtil.getSlabsClsid(addr);
+		while(allocItemStatus[clsid].compareAndSet(false, true)){}
+		try {
+			do_item_link_q(addr);
+		} finally {
+			allocItemStatus[clsid].set(false);
+		}
+	}
+	
+	/**
+	 * TODO
+	 * @param addr
+	 */
+	private static void do_item_link_q(long addr){ /* item is the new head */
+		
+	}
+	
+	/* Get the next CAS id for a new item. */
+	public static long get_cas_id(){
+		return casid.incrementAndGet();
+	}
+	
 	public static void do_item_unlink(long addr){
 		byte flags = ItemUtil.getItflags(addr);
 		if((flags&ItemFlags.ITEM_LINKED.getFlags())!=0){
@@ -192,7 +272,14 @@ public class Items {
 	 * @param addr
 	 */
 	public static int refcount_decr(long addr){
-		return 0;
+		return 1;
+	}
+	
+	/**
+	 * TODO 
+	 * @param addr
+	 */
+	public static void refcount_incr(long addr){
 	}
 	
 	public static boolean item_is_flushed(long itemaddr){

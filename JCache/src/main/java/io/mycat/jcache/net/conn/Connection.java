@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import io.mycat.jcache.enums.Protocol;
 import io.mycat.jcache.net.JcacheGlobalConfig;
+import io.mycat.jcache.net.command.CommandType;
 import io.mycat.jcache.net.conn.handler.AsciiIOHanlder;
 import io.mycat.jcache.net.conn.handler.BinaryIOHandler;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
@@ -44,6 +45,7 @@ public class Connection implements Closeable,Runnable{
 	private boolean isClosed;    
     private IOHandler ioHandler;  //io 协议处理类
     private Protocol protocol;  //协议类型
+    private CommandType curCommand;
     
     private Map<Protocol,IOHandler> protMap = new HashMap<>();  //动态解析时，可以缓存当前iohandler 减少重复创建
     
@@ -52,11 +54,7 @@ public class Connection implements Closeable,Runnable{
      */
     private BinaryRequestHeader binaryHeader = new BinaryRequestHeader();  //当前连接的多个请求 使用同一个 header 对象， 减少对象创建
     
-    /**
-     * 二进制 响应头
-     */
-    private BinaryResponseHeader binaryResponse = new BinaryResponseHeader();  //当前连接的多个请求 使用同一个 response对象，减少对象创建
-    
+
     
     public Connection(SocketChannel channel){
     	
@@ -89,14 +87,6 @@ public class Connection implements Closeable,Runnable{
     
     public BinaryRequestHeader getBinaryRequestHeader(){
     	return this.binaryHeader;
-    }
-    
-    public void setBinaryResponseHeader(BinaryResponseHeader binaryResponse){
-    	this.binaryResponse = binaryResponse;
-    }
-    
-    public BinaryResponseHeader getBinaryResponseHeader(){
-    	return this.binaryResponse;
     }
     
 	@Override
@@ -339,5 +329,13 @@ public class Connection implements Closeable,Runnable{
 	 */
 	public void addWriteQueue(ByteBuffer buffer){
 		writeQueue.add(buffer);
+	}
+
+	public CommandType getCurCommand() {
+		return curCommand;
+	}
+
+	public void setCurCommand(CommandType curCommand) {
+		this.curCommand = curCommand;
 	}
 }

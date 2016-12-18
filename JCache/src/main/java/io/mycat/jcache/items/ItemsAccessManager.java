@@ -1,7 +1,8 @@
 package io.mycat.jcache.items;
 
 import io.mycat.jcache.context.JcacheContext;
-import io.mycat.jcache.enums.ItemFlags;
+import io.mycat.jcache.enums.Store_item_type;
+import io.mycat.jcache.memhashtable.HashTable;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.setting.Settings;
 import io.mycat.jcache.util.ItemUtil;
@@ -31,6 +32,13 @@ public class ItemsAccessManager {
 	 */
 	public long item_alloc(String key,int flags,long exptime,int nbytes){
 		return Items.do_item_alloc(key,flags,exptime,nbytes);
+	}
+	
+	public Store_item_type store_item(long addr,Connection conn){
+		String key = ItemUtil.getKey(addr);
+		byte length = ItemUtil.getNskey(addr);
+		long hv = HashTable.hash(key, length);
+		return Items.do_item_store(addr,conn,hv);
 	}
 	
 	public boolean item_size_ok(int nkey,int flags,int nbytes){
