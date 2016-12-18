@@ -48,7 +48,7 @@ public class ItemUtil {
 	 * @return
      */
 	public static long getPrev(long addr){
-		return UnSafeUtil.getByteVolatile(addr+PREV);
+		return UnSafeUtil.getByteVolatile(addr+ PREV);
 	}
 
 	/**
