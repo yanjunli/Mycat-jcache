@@ -296,9 +296,7 @@ public class ItemUtil {
 		if(key_bytes.length!=(getNskey(addr)&0xff)){
 			throw new RuntimeException("Error, NSkey's values != key_bytes.length");
 		}
-		for (int i = 0; i < key_bytes.length; i++) {
-			UnSafeUtil.putByte(addr+i+KEY,key_bytes[i]);
-		}
+		UnSafeUtil.setBytes(ITEM_key(addr), key_bytes, 0, key_bytes.length);
 	}
 	
 	/**

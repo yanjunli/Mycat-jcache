@@ -9,6 +9,7 @@ import sun.misc.Unsafe;
  * @author liyanjun
  *
  */
+@SuppressWarnings("restriction")
 public class UnSafeUtil {
 	
 	public static final Unsafe unsafe;
