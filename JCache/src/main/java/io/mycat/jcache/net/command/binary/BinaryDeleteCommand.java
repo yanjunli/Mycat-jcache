@@ -4,6 +4,7 @@ package io.mycat.jcache.net.command.binary;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import io.mycat.jcache.context.JcacheContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,15 +20,14 @@ public class BinaryDeleteCommand implements  Command {
 
     @Override
     public void execute(Connection conn) throws IOException {
-        logger.info("delete command");
-        ByteBuffer key = readkey(conn);
-        if(key==null || key.capacity()==0){
+        logger.info("execute delete command");
+        ByteBuffer keyBuf = readkey(conn);
+        if(keyBuf==null || keyBuf.capacity()==0){
             writeResponse(conn, ProtocolCommand.PROTOCOL_BINARY_CMD_DELETE.getByte(), ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_KEY_ENOENT.getStatus(),0l);
         }
-        String keys = new String(cs.decode(key).array());
-//        int result = ReadWritePool.delete(keys);
-//        logger.info("delete command result : "+result);
-//        System.out.println("delete command result :"+result);
+        String key = new String(cs.decode(keyBuf).array());
+        Long addr =  JcacheContext.getItemsAccessManager().item_get(key,conn);
+        JcacheContext.getItemsAccessManager().item_remove(addr);
         writeResponse(conn,ProtocolCommand.PROTOCOL_BINARY_CMD_DELETE.getByte(),ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus(),1l);
     }
 }
