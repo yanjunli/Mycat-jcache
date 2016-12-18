@@ -395,6 +395,16 @@ public class Items {
 		return  do_item_link(newAddr, hv);
 	}
 
+
+	public  static long  do_item_touch(long addr,long expiretime,Connection conn){
+		String key = ItemUtil.getKey(addr);
+		Long item  = do_item_get(key,conn);
+		if(item!=null){
+			ItemUtil.setExpTime(addr,expiretime);
+		}
+		return item;
+	}
+
 //	public long lru_pull_tail(int slab_idx, int cur_lru, int total_chunks, boolean do_evict, int cur_hv){
 //		long id;
 //		int removed = 0;
