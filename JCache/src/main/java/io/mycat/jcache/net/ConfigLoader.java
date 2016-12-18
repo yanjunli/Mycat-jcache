@@ -1,12 +1,12 @@
 package io.mycat.jcache.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 配置加载器
@@ -27,7 +27,7 @@ public class ConfigLoader {
 	private ConfigLoader(){}
 	
 	public static void loadProperties(String path) throws IOException{
-		if(path==null){
+		if(path==null&&path==""){
 			 path = filepath;
 		}
 
@@ -35,7 +35,8 @@ public class ConfigLoader {
 			logger.info("Loading properties file from " + path);
 		}
 		
-		String root = Thread.currentThread().getContextClassLoader().getResource("").getPath();		
+		String root = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+		System.out.println(root);
 		try (InputStream is = new FileInputStream(root+ "/" + path);){
 				properties.load(is);
 		} catch (IOException e) {

@@ -1,9 +1,5 @@
 package io.mycat.jcache.net;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.mycat.jcache.context.JcacheContext;
 import io.mycat.jcache.enums.Protocol;
 import io.mycat.jcache.items.ItemsAccessManager;
@@ -11,6 +7,10 @@ import io.mycat.jcache.memory.SlabPool;
 import io.mycat.jcache.net.strategy.ReactorSelectEnum;
 import io.mycat.jcache.net.strategy.ReactorStrategy;
 import io.mycat.jcache.net.strategy.RoundRobinStrategy;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -30,7 +30,7 @@ public class JcacheMain
     	/**
     	 * 后期可能变更为从环境变量获取
     	 */
-    	ConfigLoader.loadProperties(null);
+    	ConfigLoader.loadProperties("");
     	
     	initGlobalConfig();
     	/** 初始化 内存模块 配置   */
