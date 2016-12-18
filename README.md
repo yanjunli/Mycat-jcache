@@ -3,7 +3,7 @@ memcached java 高仿版
 
 当前版本为内测版本
 
-支持 二进制协议   get set  命令.
+支持 二进制协议   get set  delete、touch 命令.
 
 其他命令会陆续完善.
 
