@@ -62,7 +62,7 @@ public class ItemUtil {
 		//This place used Volatile is not necessary.
 		//after codes didn't  use   Volatile
 		// setNest()
-		UnSafeUtil.putLongVolatile(addr, prev+PREV);
+		UnSafeUtil.putLongVolatile(addr+PREV, prev);
 	}
 	
 	/**
@@ -141,7 +141,7 @@ public class ItemUtil {
 	}
 	
 	public static void setExpTime(long addr,long expTime){
-		UnSafeUtil.putLong(addr, expTime);
+		UnSafeUtil.putLong(addr+EXPTIME, expTime);
 	}
 	
 	/**
@@ -156,7 +156,7 @@ public class ItemUtil {
 	}
 	
 	public static void setNbytes(long addr,int nbytes){
-		UnSafeUtil.putInt(addr+40,nbytes);
+		UnSafeUtil.putInt(addr+NBYTES,nbytes);
 	}
 	
 	/**
