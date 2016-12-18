@@ -82,38 +82,40 @@ public class Items {
 			}else{
 				break;
 			}
-			ItemUtil.setNext(itemaddr, 0);
-			ItemUtil.setPrev(itemaddr, 0);
 			
-			if(Settings.lruMaintainerThread){
-				if(exptime==0&& Settings.expireZeroDoesNotEvict){
-					clsid = clsid|LRU_TYPE_MAP.NOEXP_LRU.ordinal();
-				}else{
-					clsid = clsid|LRU_TYPE_MAP.HOT_LRU.ordinal();
-				}
+		}
+		
+		ItemUtil.setNext(itemaddr, 0);
+		ItemUtil.setPrev(itemaddr, 0);
+		
+		if(Settings.lruMaintainerThread){
+			if(exptime==0&& Settings.expireZeroDoesNotEvict){
+				clsid = clsid|LRU_TYPE_MAP.NOEXP_LRU.ordinal();
 			}else{
-				clsid = clsid|LRU_TYPE_MAP.COLD_LRU.ordinal();
+				clsid = clsid|LRU_TYPE_MAP.HOT_LRU.ordinal();
 			}
-			
-			ItemUtil.setSlabsClsid(itemaddr, (byte)clsid);
-			byte flag = ItemUtil.getItflags(itemaddr);
-			ItemUtil.setItflags(itemaddr, (byte)(flag|(Settings.useCas?ItemFlags.ITEM_CAS.getFlags():0)));
-			ItemUtil.setNskey(itemaddr,(byte)key.length());
-			ItemUtil.setNbytes(itemaddr, nbytes);
-			try {
-				ItemUtil.setKey(key.getBytes(JcacheGlobalConfig.defaultCahrset), itemaddr);
-				ItemUtil.setExpTime(itemaddr, exptime);
-				byte[] suffixBytes = suffixStr.getBytes(JcacheGlobalConfig.defaultCahrset);
-				ItemUtil.setSuffix(itemaddr, suffixBytes);
-				ItemUtil.setNsuffix(itemaddr, (byte)suffixBytes.length);
-				if((flag&ItemFlags.ITEM_CHUNKED.getFlags())>0){
-					//TODO 
+		}else{
+			clsid = clsid|LRU_TYPE_MAP.COLD_LRU.ordinal();
+		}
+		
+		ItemUtil.setSlabsClsid(itemaddr, (byte)clsid);
+		byte flag = ItemUtil.getItflags(itemaddr);
+		ItemUtil.setItflags(itemaddr, (byte)(flag|(Settings.useCas?ItemFlags.ITEM_CAS.getFlags():0)));
+		ItemUtil.setNskey(itemaddr,(byte)key.length());
+		ItemUtil.setNbytes(itemaddr, nbytes);
+		try {
+			ItemUtil.setKey(key.getBytes(JcacheGlobalConfig.defaultCahrset), itemaddr);
+			ItemUtil.setExpTime(itemaddr, exptime);
+			byte[] suffixBytes = suffixStr.getBytes(JcacheGlobalConfig.defaultCahrset);
+			ItemUtil.setSuffix(itemaddr, suffixBytes);
+			ItemUtil.setNsuffix(itemaddr, (byte)suffixBytes.length);
+			if((flag&ItemFlags.ITEM_CHUNKED.getFlags())>0){
+				//TODO 
 //					long item_chunk = ItemUtil.ITEM_data(itemaddr);
-				}
-				ItemUtil.setHNext(itemaddr, 0);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
 			}
+			ItemUtil.setHNext(itemaddr, 0);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
 		}
 		return itemaddr;
 	}
@@ -168,12 +170,12 @@ public class Items {
 		/*
 		 * 只实现了 set 命令的处理 
 		 */
-		if(oldaddr!=0){
+		if(oldaddr!=-1){
 		}
 		
 		int failed_alloc = 0;
 		if(Store_item_type.NOT_STORED.equals(stored)&&failed_alloc==0){
-			if(oldaddr!=0){
+			if(oldaddr!=-1){
 //				item_replace(oldaddr,addr,hv); //todo replace
 			}else{
 				do_item_link(addr,hv);
@@ -181,7 +183,7 @@ public class Items {
 			}
 		}
 		
-		if(oldaddr!=0){
+		if(oldaddr!=-1){
 			do_item_remove(oldaddr);  /* release our reference */
 		}
 		
@@ -201,7 +203,7 @@ public class Items {
 		ItemUtil.ITEM_set_cas(addr, Settings.useCas?get_cas_id():0);
 		HashTable.put(ItemUtil.getKey(addr), addr);
 		item_link_q(addr);
-//		refcount_incr(ItemUtil.getRefCount(addr));
+		refcount_incr(ItemUtil.getRefCount(addr));
 //		item_stats_sizes_add(addr);
 		return true;
 	}
@@ -235,7 +237,7 @@ public class Items {
 			ItemUtil.setItflags(addr, (byte)(flags&~ItemFlags.ITEM_LINKED.getFlags()));
 			// TODO  stats modify
 			String key = ItemUtil.getKey(addr);
-			// HashTable.delect(key, addr);  TODO  这个方法可鞥有问题
+			HashTable.delect(key);
 		}
 	}
 	

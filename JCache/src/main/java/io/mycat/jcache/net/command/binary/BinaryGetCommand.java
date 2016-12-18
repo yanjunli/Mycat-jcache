@@ -45,19 +45,27 @@ public class BinaryGetCommand implements Command{
 		int extlen  = conn.getBinaryRequestHeader().getExtlen();
 		
 		if (extlen == 0 && bodylen == keylen && keylen > 0) {
-			ByteBuffer key = readkey(conn);
-			String keystr = new String(cs.decode(key).array());
-			logger.info("execute command get key {}",keystr);
-			long addr = JcacheContext.getItemsAccessManager().item_get(keystr, conn);
-			byte[] value = ItemUtil.getValue(addr);
-			int flags = ItemUtil.getItflags(addr);
-			byte[] extras = new byte[4];
-			extras[0] = (byte) (flags <<24  &0xff);
-			extras[1] = (byte) (flags <<16  &0xff);
-			extras[2] = (byte) (flags <<8   &0xff);
-			extras[3] = (byte) (flags       &0xff);
-			BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GET,null,value,extras,1l);
-			writeResponse(conn,header,extras,null,value);
+			try {
+				ByteBuffer key = readkey(conn);
+				String keystr = new String(cs.decode(key).array());
+				logger.info("execute command get key {}",keystr);
+				long addr = JcacheContext.getItemsAccessManager().item_get(keystr, conn);
+				
+				System.out.println("  addr  "+addr);
+				byte[] value = ItemUtil.getValue(addr);
+//				int flags = ItemUtil.getItflags(addr);
+				int flags = BinaryProtocol.MARKER_STRING;  //TODO 
+				byte[] extras = new byte[4];
+				extras[0] = (byte) (flags <<24  &0xff);
+				extras[1] = (byte) (flags <<16  &0xff);
+				extras[2] = (byte) (flags <<8   &0xff);
+				extras[3] = (byte) (flags       &0xff);
+				BinaryResponseHeader header = buildHeader(conn.getBinaryRequestHeader(),BinaryProtocol.OPCODE_GET,null,value,extras,1l);
+				writeResponse(conn,header,extras,null,value);				
+			} catch (Exception e) {
+				logger.error(" execute command get error ", e);
+				throw e;
+			}
 		} else {
 			writeResponse(conn, BinaryProtocol.OPCODE_GET, ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_EINVAL.getStatus(), 0L);
 		}

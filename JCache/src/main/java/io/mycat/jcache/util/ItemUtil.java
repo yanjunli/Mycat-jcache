@@ -328,7 +328,7 @@ public class ItemUtil {
 	public static byte[] getValue(long addr){
 		int length = getNbytes(addr);
 		byte[] data = new byte[length];
-		UnSafeUtil.getBytes(addr, data, (int)ITEM_data(addr),length);
+		UnSafeUtil.getBytes(ITEM_data(addr), data,0,length);
 		return data;
 	}
 	

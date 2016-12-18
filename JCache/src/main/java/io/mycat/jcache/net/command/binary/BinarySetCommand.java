@@ -38,16 +38,12 @@ public class BinarySetCommand implements Command{
 				
 		ByteBuffer extras = readExtras(conn);
 		
-		int flags = extras.getInt();
+		int flags = extras.getInt();//TODO 
 		int exptime = extras.getInt(4);
-		
-		if(logger.isInfoEnabled()){
-			logger.info("execute command set key {} , value {} ",new String(cs.decode (key).array()),new String(cs.decode (value).array()));
-		}
 	
 		try {
 			long addr = JcacheContext.getItemsAccessManager().item_alloc(keystr, flags, exptime, readValueLength(conn)+2);
-			
+			System.out.println("  addr  "+addr);
 			if(addr==0){
 				if(!JcacheContext.getItemsAccessManager().item_size_ok(readKeyLength(conn), flags, readValueLength(conn)+2)){
 					writeResponse(conn,BinaryProtocol.OPCODE_SET,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_E2BIG.getStatus(),0l);
@@ -62,8 +58,20 @@ public class BinarySetCommand implements Command{
 				}
 				return;
 			}
+			// prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey
+//			ItemUtil.set
+//			ItemUtil.setKey(keystr.getBytes(JcacheGlobalConfig.defaultCahrset), addr);
+			byte[] valuebyte = new byte[value.limit()];
+			value.get(valuebyte);
+			ItemUtil.setValue(addr, valuebyte);
 			
 			ItemUtil.ITEM_set_cas(addr, readCAS(conn));
+			
+			complete_update_bin(addr,conn);
+			
+			if(logger.isInfoEnabled()){
+				logger.info("execute command set key {} , value {} ",new String(cs.decode (key).array()),new String(cs.decode (value).array()));
+			}
 			
 			writeResponse(conn,BinaryProtocol.OPCODE_SET,ProtocolResponseStatus.PROTOCOL_BINARY_RESPONSE_SUCCESS.getStatus(),1l);
 			
@@ -71,6 +79,5 @@ public class BinarySetCommand implements Command{
 			logger.error("set command error ", e);
 			throw e;
 		}
-		
 	}
 }
