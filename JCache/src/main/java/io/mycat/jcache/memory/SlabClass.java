@@ -39,13 +39,13 @@ public class SlabClass {
 	/**
 	 * 当前空闲 slots 链表
 	 */
-	LinkedList<Long> slots;
+	LinkedList<Long> slots = new LinkedList<>();
 //    BitSet chunkAllocateTrack;
 	
 	/**
 	 * 分配的slab链表  存放每个slab的 首地址
 	 */
-	LinkedBlockingQueue<Long> slab_list;
+	LinkedBlockingQueue<Long> slab_list = new LinkedBlockingQueue<>();
 	
 	/**
 	 * 当前总共剩余多少个空闲的item
@@ -73,7 +73,11 @@ public class SlabClass {
 	
 	public SlabClass(int chunkSize, int perSlab){
 		this.chunkSize = chunkSize;
-		this.perSlab = perSlab;	
+		this.perSlab = perSlab;
+		sl_curr = new AtomicInteger(0);
+		allocatedslabs = new AtomicInteger(0);
+		list_size = new AtomicInteger(0);
+		requested = new AtomicInteger(0);
 	}	
 	
 	/**
@@ -103,6 +107,7 @@ public class SlabClass {
 				addr = slots.removeFirst();
 				byte it_flags = ItemUtil.getItflags(addr);
 				ItemUtil.setItflags(addr, (byte)(it_flags &~ItemFlags.ITEM_SLABBED.getFlags()));
+				ItemUtil.setRefCount(addr,(short)1);
 				sl_curr.decrementAndGet();
 			}else{
 				 /* Dealing with a chunked item. */

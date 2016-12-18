@@ -10,6 +10,11 @@ import io.mycat.jcache.setting.Settings;
  * bytebuffer 组织形式， header 和 data 部分。                                                                                                                                                                       header 部分结束
  * prev,next,hnext,flushTime,expTime,nbytes,refCount,slabsClisd,it_flags,nsuffix,nskey,//    CAS,key,suffix,value
  * 0    8    16    24        32      40     44       46         47       48      49          50  58  58+key
+ *
+ * item   cas  key  suffix  data
+ *
+ * suffix  由   '' "flag" '' "nbytes" \r \n 组成。
+ * 其中 "flag"  为 flag 的字符形式， "nbytes"  是 nbytes 的字符形式
  */
 public class ItemUtil {
 
@@ -62,7 +67,7 @@ public class ItemUtil {
 		//This place used Volatile is not necessary.
 		//after codes didn't  use   Volatile
 		// setNest()
-		UnSafeUtil.putLongVolatile(addr, prev+PREV);
+		UnSafeUtil.putLongVolatile(addr+PREV, prev);
 	}
 	
 	/**
@@ -121,7 +126,11 @@ public class ItemUtil {
 		//return UnSafeUtil.getInt(addr+3);
 		return UnSafeUtil.getIntVolatile(addr+FLUSHTIME);
 	}
-	
+
+	public static void setTime(long addr,long time){
+		UnSafeUtil.lazySetLong(addr+FLUSHTIME, time);
+	}
+
 	/**
 	 * 缓存的过期时间。设置为0的时候，则永久有效。
 	 * 如果Memcached不能分配新的item的时候，设置为0的item也有可能被LRU淘汰
@@ -137,7 +146,7 @@ public class ItemUtil {
 	}
 	
 	public static void setExpTime(long addr,long expTime){
-		UnSafeUtil.putLong(addr, expTime);
+		UnSafeUtil.putLong(addr+EXPTIME, expTime);
 	}
 	
 	/**
@@ -152,7 +161,7 @@ public class ItemUtil {
 	}
 	
 	public static void setNbytes(long addr,int nbytes){
-		UnSafeUtil.putIntVolatile(addr+40,nbytes);
+		UnSafeUtil.putIntVolatile(addr+NBYTES,nbytes);
 	}
 	
 	/**
@@ -292,9 +301,7 @@ public class ItemUtil {
 		if(key_bytes.length!=(getNskey(addr)&0xff)){
 			throw new RuntimeException("Error, NSkey's values != key_bytes.length");
 		}
-		for (int i = 0; i < key_bytes.length; i++) {
-			UnSafeUtil.putByteVolatile(addr+i+KEY,key_bytes[i]);
-		}
+		UnSafeUtil.setBytes(ITEM_key(addr), key_bytes, 0, key_bytes.length);
 	}
 	
 	/**
@@ -326,7 +333,7 @@ public class ItemUtil {
 	public static byte[] getValue(long addr){
 		int length = getNbytes(addr);
 		byte[] data = new byte[length];
-		UnSafeUtil.getBytes(addr, data, (int)ITEM_data(addr),length);
+		UnSafeUtil.getBytes(ITEM_data(addr), data,0,length);
 		return data;
 	}
 	
@@ -376,6 +383,21 @@ public class ItemUtil {
 	}
 	
 	/**
+	 * 获取 suffix 中 flags
+	 * @param addr
+	 * @return
+	 */
+	public static int ITEM_suffix_flags(long addr){
+//		int length = getNsuffix(addr);
+//		int nbytes = String.valueOf(getNbytes(addr)).length();
+//		length -= (nbytes + 2 + 1);  //减去   /r /r  ''  总共三个字符
+//		byte[] flagsBytes = new byte[length];
+//
+//		UnSafeUtil.getBytes(ITEM_suffix(addr), flagsBytes, 0, length);
+		return UnSafeUtil.getByte(ITEM_suffix(addr));
+	}
+
+	/**
 	 * 获取key 开始地址
 	 * ITEM_key(item) (((char*)&((item)->data)) + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
 	 * @param addr
@@ -406,6 +428,18 @@ public class ItemUtil {
 		return getHeaderEnd(addr) + getNskey(addr) + 1 + getNsuffix(addr) + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
 	}
 	
+	public static void ITEM_set_cas(long addr,long cas){
+		byte flags = getItflags(addr);
+		if((flags &ItemFlags.ITEM_CAS.getFlags())>0){
+			setCAS(cas, addr);
+		}
+	}
+
+	public static long ITEM_get_cas(long addr){
+		byte flags = getItflags(addr);
+		return (flags &ItemFlags.ITEM_CAS.getFlags())>0?getCAS(addr):0;
+	}
+
 	/**
 	 * 获取ntotal
 	 * (sizeof(struct _stritem) + (item)->nkey + 1 + (item)->nsuffix + (item)->nbytes + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
@@ -417,4 +451,7 @@ public class ItemUtil {
 		return 0;
 	}
 
+	public static void setRefCount(long addr, short value) {
+		UnSafeUtil.putShort(addr+REFCOUNT,value);
+	}
 }

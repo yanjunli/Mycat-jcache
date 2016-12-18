@@ -27,14 +27,15 @@ public class JcacheMain
     public static void main( String[] args ) throws IOException 
     {    	
     	reactorStrategy.put(ReactorSelectEnum.ROUND_ROBIN, new RoundRobinStrategy());
-    	
-    	initGlobalConfig();
-    	/** 初始化 内存模块 配置   */
-    	initMemoryConfig();
     	/**
     	 * 后期可能变更为从环境变量获取
     	 */
     	ConfigLoader.loadProperties(null);
+    	
+    	initGlobalConfig();
+    	/** 初始化 内存模块 配置   */
+    	initMemoryConfig();
+
     	int port = ConfigLoader.getIntProperty("port",JcacheGlobalConfig.defaultPort);
     	int poolsize = ConfigLoader.getIntProperty("reactor.pool.size",JcacheGlobalConfig.defaulePoolSize);
     	String bindIp = ConfigLoader.getStringProperty("reactor.pool.bindIp", JcacheGlobalConfig.defaultPoolBindIp);
@@ -66,7 +67,11 @@ public class JcacheMain
      * 初始化内存模块配置
      */
     public static void initMemoryConfig(){
-    	JcacheContext.setSlabPool(new SlabPool());
+    	SlabPool slabPool = new SlabPool();
+    	int unit = 1024*1024;
+    	long limit = ConfigLoader.getLongProperty("mem.limit", 64);
+    	slabPool.init(limit*unit);
+    	JcacheContext.setSlabPool(slabPool);
     	JcacheContext.setItemsAccessManager(new ItemsAccessManager());
     }
 }

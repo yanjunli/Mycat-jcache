@@ -30,6 +30,10 @@ public class HashTable {
             cached.putLong(-1);
         }
     }*/
+    
+    public static long hash(String key , long ... length){
+    	return hash.hash(key,length);
+    }
 
     //艳军提示逻辑地址 0xC0000000  开头 ，根据此原则 改变判断方法
     public static long find(String key) {

@@ -1,6 +1,7 @@
 package io.mycat.jcache;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -69,9 +70,10 @@ public class AppTest {
 	public void testsetCommand(){
         boolean result = mcc.set("foo", "This is a test String");
         System.out.println(result);
-        String bar = mcc.get("foo").toString();
+        Object bar = mcc.get("foo");
         System.out.println(">>> " + bar);
 	}
+	
 
     @Test
     public void testJMemcached() throws InterruptedException {
