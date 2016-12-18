@@ -75,5 +75,12 @@ public class Settings {
 	
 	public static int LRU_PULL_EVICT = 1;
 	public static int LRU_PULL_CRAWL_BLOCKS = 2;
+
+	/*
+	 * We only reposition items in the LRU queue if they haven't been repositioned
+	 * in this many seconds. That saves us from churning on frequently-accessed
+	 * items.
+	 */
+	public static int ITEM_UPDATE_INTERVAL= 60;
 	
 }
