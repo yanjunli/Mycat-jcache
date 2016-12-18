@@ -370,6 +370,31 @@ public class Items {
 			}
 	}
 
+	/* Bump the last accessed time, or relink if we're in compat mode */
+	private void do_item_update(long addr) {
+		if(ItemUtil.getTime(addr)<System.currentTimeMillis()/1000-Settings.ITEM_UPDATE_INTERVAL){
+			if ((ItemUtil.getItflags(addr) & ItemFlags.ITEM_LINKED.getFlags()) != 0) {
+				ItemUtil.setTime(addr,System.currentTimeMillis()/1000);
+				if (!Settings.lruMaintainerThread) {
+					item_unlink_q(addr);
+					item_link_q(addr);
+				}
+			}
+		}
+	}
+
+	private void item_unlink_q(long addr) {
+	}
+
+	private static void do_item_unlink(long addr,int hv){
+
+	}
+
+	public static boolean do_item_replace(long oldAddr,long newAddr,int hv){
+		do_item_unlink(oldAddr,hv);
+		return  do_item_link(newAddr, hv);
+	}
+
 //	public long lru_pull_tail(int slab_idx, int cur_lru, int total_chunks, boolean do_evict, int cur_hv){
 //		long id;
 //		int removed = 0;
