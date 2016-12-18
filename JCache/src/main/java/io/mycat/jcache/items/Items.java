@@ -2,10 +2,12 @@ package io.mycat.jcache.items;
 
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.mycat.jcache.context.JcacheContext;
 import io.mycat.jcache.enums.ItemFlags;
 import io.mycat.jcache.enums.LRU_TYPE_MAP;
+import io.mycat.jcache.enums.Store_item_type;
 import io.mycat.jcache.memhashtable.HashTable;
 import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.conn.Connection;
@@ -156,7 +158,7 @@ public class Items {
 	 *
 	 * Returns the state of storage.
 	 */
-	public static Store_item_type do_item_store(long addr,Connection conn,long hv){
+	public static Store_item_type do_item_store(long addr, Connection conn, long hv){
 		Store_item_type stored = Store_item_type.NOT_STORED;
 		String key = ItemUtil.getKey(addr);
 		long oldaddr = do_item_get(key,conn);
@@ -215,15 +217,15 @@ public class Items {
 
 	/**
 	 * TODO
-	 * @param addr
+//	 * @param addr
 	 */
-	private static void do_item_link_q(long addr){ /* item is the new head */
-
-	}
+//	private static void do_item_link_q(long addr){ /* item is the new head */
+//
+//	}
 
 	/* Get the next CAS id for a new item. */
 	public static long get_cas_id(){
-		return casid.incrementAndGet();
+		return casIdGeneraytor.incrementAndGet();
 	}
 
 	public static void do_item_unlink(long addr){
@@ -279,31 +281,39 @@ public class Items {
 	public static void refcount_incr(long addr){
 	}
 
-	public boolean do_item_link(long addr,int hv){
-		byte flags = (byte)(ItemUtil.getItflags(addr) | ItemFlags.ITEM_LINKED.getFlags());
-		ItemUtil.setItflags(addr,flags);
-		ItemUtil.setTime(addr,System.currentTimeMillis());
-		//TODO
-//		STATS_LOCK();
-//		stats_state.curr_bytes += ITEM_ntotal(it);
-//		stats_state.curr_items += 1;
-//		stats.total_items += 1;
-//		STATS_UNLOCK();
+	/**
+	 *  采用艳军的方法 后review
+	 * @param addr
+     */
+//	public boolean do_item_link(long addr,int hv){
+//		byte flags = (byte)(ItemUtil.getItflags(addr) | ItemFlags.ITEM_LINKED.getFlags());
+//		ItemUtil.setItflags(addr,flags);
+//		ItemUtil.setTime(addr,System.currentTimeMillis());
+//		//TODO
+////		STATS_LOCK();
+////		stats_state.curr_bytes += ITEM_ntotal(it);
+////		stats_state.curr_items += 1;
+////		stats.total_items += 1;
+////		STATS_UNLOCK();
+//
+//		ItemUtil.setCAS(Settings.useCas?get_cas_id():0,addr);
+//		//TODO assoc_insert(it,hv);//插入hash chain中
+////		JcacheContext.getItemsAccessManager().i
+//		item_link_q(addr);
+//		ItemUtil.setRefCount(addr, (short) (ItemUtil.getRefCount(addr)+1));
+//		return true;
+//	}
 
-		ItemUtil.setCAS(Settings.useCas?get_cas_id():0,addr);
-		//TODO assoc_insert(it,hv);//插入hash chain中
-//		JcacheContext.getItemsAccessManager().i
-		item_link_q(addr);
-		ItemUtil.setRefCount(addr, (short) (ItemUtil.getRefCount(addr)+1));
-		return true;
-	}
-
-	public static void item_link_q(long addr) {
-		int slabIdex = ItemUtil.getSlabsClsid(addr);
-		synchronized (allocItemStatus[slabIdex]) {
-			do_item_link_q(addr);
-		}
-	}
+	/**
+	 *
+	 * @param addr
+     */
+//	public static void item_link_q(long addr) {
+//		int slabIdex = ItemUtil.getSlabsClsid(addr);
+//		synchronized (allocItemStatus[slabIdex]) {
+//			do_item_link_q(addr);
+//		}
+//	}
 
 	public  static void do_item_link_q(long addr) {
 		ItemUtil.getSlabsClsid(addr);
@@ -313,9 +323,9 @@ public class Items {
 
 
 	/* Get the next CAS id for a new item. */
-	public static long get_cas_id() {
-		return casIdGeneraytor.getAndIncrement();
-	}
+//	public static long get_cas_id() {
+//		return casIdGeneraytor.getAndIncrement();
+//	}
 
 	public static boolean item_is_flushed(long itemaddr){
 	    long oldest_live = Settings.oldestLive;
