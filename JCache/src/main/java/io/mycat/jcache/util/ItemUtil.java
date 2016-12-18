@@ -35,14 +35,11 @@ public class ItemUtil {
 
 
 	////////////////////////////////// header begin ////////////////////////////////////////////////
-
 	/**
 	 * 获取 /记录上一个item的地址,主要用于LRU链和freelist链   
 	 * @param item
 	 * @return
 	 */
-	public static byte getPrev(long addr){
-		return UnSafeUtil.getByte(addr);
 	/**
 	 * This place had huge bug ,  byte  didn't enough to contain the information the address
 	 * This place must be long
@@ -54,8 +51,6 @@ public class ItemUtil {
 		return UnSafeUtil.getByteVolatile(addr+PREV);
 	}
 
-	public static void setPrev(long addr,byte prev){
-		UnSafeUtil.putByte(addr, prev);
 	/**
 	 * This place had huge bug ,  byte  didn't enough to contain the information the address
 	 * This place must be long
@@ -72,7 +67,7 @@ public class ItemUtil {
 	
 	/**
 	 * 记录下一个item的地址,主要用于LRU链和freelist链
-	 * @param item
+	 * @param //item
 	 * @return
 	 */
 	public static long getNext(long addr){
@@ -127,13 +122,8 @@ public class ItemUtil {
 		return UnSafeUtil.getInt(addr+FLUSHTIME);
 	}
 
-	/**
-	 *  link方法调用
-	 * @param addr
-	 * @param time
-     */
 	public static void setTime(long addr,long time){
-		UnSafeUtil.putLong(addr+FLUSHTIME,time);
+		UnSafeUtil.lazySetLong(addr+FLUSHTIME, time);
 	}
 
 	/**
@@ -149,7 +139,7 @@ public class ItemUtil {
 		//return UnSafeUtil.getLong(addr+7);
 		return UnSafeUtil.getLong(addr+EXPTIME);
 	}
-
+	
 	public static void setExpTime(long addr,long expTime){
 		UnSafeUtil.putLong(addr, expTime);
 	}
@@ -164,7 +154,7 @@ public class ItemUtil {
 		//return UnSafeUtil.getInt(addr+11);
 		return UnSafeUtil.getInt(addr+NBYTES);
 	}
-
+	
 	public static void setNbytes(long addr,int nbytes){
 		UnSafeUtil.putInt(addr+40,nbytes);
 	}
@@ -181,12 +171,7 @@ public class ItemUtil {
 		//return UnSafeUtil.getShort(addr+15);
 		return UnSafeUtil.getShort(addr+REFCOUNT);
 	}
-
-
-	public static void setRefCount(long addr,short refCount){
-		UnSafeUtil.putShort(addr+REFCOUNT,refCount);
-	}
-
+	
 	/**
 	 * which slab class we're in 标记item属于哪个slabclass下
 	 * @param //item
@@ -374,15 +359,15 @@ public class ItemUtil {
 	    /* suffix is defined at 40 chars elsewhere.. */
 //	    *nsuffix = (uint8_t) snprintf(suffix, 40, " %u %d\r\n", flags, nbytes - 2);
 //	    return sizeof(item) + nkey + *nsuffix + nbytes;
-
+		
 		String suffixStr = item_make_header_suffix(nkey,flags,nbytes);
 		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
 	}
-
+	
 	public static int item_make_header(int nkey,int flags,int nbytes,String suffixStr){
 		return Settings.ITEM_HEADER_LENGTH + nkey + suffixStr.length() + nbytes;
 	}
-
+	
 	public static String item_make_header_suffix(int nkey,int flags,int nbytes){
 		StringBuffer sb = new StringBuffer();
 		sb.append(" ").append(flags).append(" ").append((nbytes-2));
@@ -424,19 +409,19 @@ public class ItemUtil {
 	public static long ITEM_data(long addr){
 		return getHeaderEnd(addr) + getNskey(addr) + 1 + getNsuffix(addr) + (((getItflags(addr)&ItemFlags.ITEM_CAS.getFlags())==0)?0:8);
 	}
-
+	
 	public static void ITEM_set_cas(long addr,long cas){
 		byte flags = getItflags(addr);
 		if((flags &ItemFlags.ITEM_CAS.getFlags())>0){
 			setCAS(cas, addr);
 		}
 	}
-
+	
 	public static long ITEM_get_cas(long addr){
 		byte flags = getItflags(addr);
 		return (flags &ItemFlags.ITEM_CAS.getFlags())>0?getCAS(addr):0;
 	}
-
+	
 	/**
 	 * 获取ntotal
 	 * (sizeof(struct _stritem) + (item)->nkey + 1 + (item)->nsuffix + (item)->nbytes + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))

@@ -41,9 +41,10 @@ public class BinarySetCommand implements Command{
 		int flags = extras.getInt();
 		int exptime = extras.getInt(4);
 		
-		System.out.println("执行set 命令   key: "+new String(cs.decode (key).array()));
-		System.out.println("执行set 命令   value: "+new String(cs.decode (value).array()));
-		
+		if(logger.isInfoEnabled()){
+			logger.info("execute command set key {} , value {} ",new String(cs.decode (key).array()),new String(cs.decode (value).array()));
+		}
+	
 		try {
 			long addr = JcacheContext.getItemsAccessManager().item_alloc(keystr, flags, exptime, readValueLength(conn)+2);
 			

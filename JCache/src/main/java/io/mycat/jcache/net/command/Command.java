@@ -1,11 +1,16 @@
 package io.mycat.jcache.net.command;
 
+import io.mycat.jcache.context.JcacheContext;
+import io.mycat.jcache.enums.ItemFlags;
+import io.mycat.jcache.enums.Store_item_type;
 import io.mycat.jcache.net.JcacheGlobalConfig;
 import io.mycat.jcache.net.command.binary.ProtocolResponseStatus;
 import io.mycat.jcache.net.conn.Connection;
 import io.mycat.jcache.net.conn.handler.BinaryProtocol;
 import io.mycat.jcache.net.conn.handler.BinaryRequestHeader;
 import io.mycat.jcache.net.conn.handler.BinaryResponseHeader;
+import io.mycat.jcache.util.ItemUtil;
+import io.mycat.jcache.util.UnSafeUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -112,6 +117,23 @@ public interface Command {
 		copyBuf.limit(length);
 		mapBuf.position(oldPos);
 		return copyBuf;
+	}
+	
+	public default void complete_update_bin(long addr,Connection conn){
+		Store_item_type ret = Store_item_type.NOT_STORED;
+		byte flags = ItemUtil.getItflags(addr);
+		/* We don't actually receive the trailing two characters in the bin
+	     * protocol, so we're going to just set them here */
+		if((flags&ItemFlags.ITEM_CHUNKED.getFlags())==0){
+			long datastart = ItemUtil.ITEM_data(addr);
+			long nbytes = ItemUtil.getNbytes(addr);
+			UnSafeUtil.putByte(datastart+nbytes-2, (byte)13);
+			UnSafeUtil.putByte(datastart+nbytes-1, (byte)10);
+		}else{
+			//TODO 
+		}
+		
+		ret = JcacheContext.getItemsAccessManager().store_item(addr,conn);
 	}
 	
 	/**
