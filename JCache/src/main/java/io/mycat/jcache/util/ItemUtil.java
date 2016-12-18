@@ -433,4 +433,7 @@ public class ItemUtil {
 		return 0;
 	}
 
+	public static void setRefCount(long addr, short value) {
+		UnSafeUtil.putShort(addr+REFCOUNT,value);
+	}
 }
