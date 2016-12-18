@@ -28,8 +28,7 @@ public class SlabPool {
 	long mem_limit;     //总内存大小
 	int powerLargest;  //最大 slabclass 数量
 	ByteBuffer[] baseBuf = null;  //预分配内存数组
-	//yanglinlin 应该是全局可见的
-	volatile  int currByteIndex;  //当前用到了第几个bytebuffer;
+	int currByteIndex;  //当前用到了第几个bytebuffer;
 	
 	final AtomicBoolean allocLockStatus = new AtomicBoolean(false);
 	
@@ -46,21 +45,27 @@ public class SlabPool {
 		
 		try{
 			
-			if(memLimit<Integer.MAX_VALUE){
+			if(memLimit<=Integer.MAX_VALUE){
 				baseBuf = new ByteBuffer[1];
 				baseBuf[0] = ByteBuffer.allocateDirect((int) memLimit);
 			}else{
 				int bufcount = (int) Math.ceil((memLimit/Integer.MAX_VALUE));
-				int suffixbuff = (int) (memLimit - (Integer.MAX_VALUE*(bufcount-1)));
-				if(suffixbuff<Settings.slabPageSize){  //最后一个大小不足  slabPageSize 时， 不计算
-					suffixbuff = 0;
-				}
+				int suffixbuff = (int)((memLimit-bufcount)%Integer.MAX_VALUE);
 				baseBuf = new ByteBuffer[bufcount];
 				for(int i=0;i<bufcount-1;i++){
 					baseBuf[i] = ByteBuffer.allocateDirect(Integer.MAX_VALUE);
 				}
-				if(bufcount>1&&suffixbuff>0){
-					baseBuf[bufcount-1] = ByteBuffer.allocateDirect(suffixbuff);
+				
+				if(suffixbuff==0){
+					baseBuf[bufcount-1] = ByteBuffer.allocateDirect(Integer.MAX_VALUE);
+				}else{
+					if(suffixbuff<Settings.slabPageSize){  //最后一个大小不足  slabPageSize 时， 不计算
+						suffixbuff = 0;
+					}
+					
+					if(bufcount>1&&suffixbuff>0){
+						baseBuf[bufcount-1] = ByteBuffer.allocateDirect(suffixbuff);
+					}
 				}
 			}
 			mem_avail = memLimit;
@@ -84,8 +89,8 @@ public class SlabPool {
 				size += Settings.CHUNK_ALIGN_BYTES-(size % Settings.CHUNK_ALIGN_BYTES);
 			
 			slabClassArr[i] = new SlabClass(size,Settings.slabPageSize/size);
-			size *= Settings.factor;
 			log.info("slab class "+i+": chunk size "+size+" item count "+slabClassArr[i].perSlab);
+			size *= Settings.factor;
 		}
 		
 		this.powerLargest = i; 
